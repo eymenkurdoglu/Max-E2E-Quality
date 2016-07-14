@@ -1,14 +1,20 @@
 clc
 close all
-dbstop if error
+
+%% simulation settings and preparations
+
+
+
+
+
+
 path = '~/Dropbox/Matlab/UEP4hP/data/';
 
-%% data process
 for folder = dir(path)'
-    if folder.isdir && ~( strcmp(folder.name,'.') || strcmp(folder.name,'..') )
+    if isdir(folder) && ~( strcmp(folder.name,'.') || strcmp(folder.name,'..') )
         if ~exist( [folder.name,'.mat'], 'file' )
             
-            fprintf( 'Could not find prior simulations, simulating for %s\n', folder.name );
+            fprintf( '' )
             packet_size = 200; % bytes
             alphas = 10.^(-1:-1:-3);
             betas = 9*alphas;
@@ -17,11 +23,11 @@ for folder = dir(path)'
             param = strsplit(folder.name,'-');
             sequence   = param{1};
             spatialres = param{2};
-            fps        = str2double( param{3} );
-            N          = str2double( param{4} ); range = ((I-1)*N + 1) : I*N;  T = N/fps;
-            templayers = str2double( param{5} );
+            fps        = param{3};
+            N          = param{4}; range = (I-1)*N + 1 : I*N;  = N/fps;
+            templayers = param{5};
             l = []; qp = []; rates = [];
-            for file = dir( strcat(path,folder.name,'/*.txt') )'
+            for file = dir( strcat(path,folder.name,'/*.txt') )
                 contents = dlmread( strcat(path,folder.name,'/',file.name) );
                 l  = [l contents(:,1)];
                 qp = [qp contents(:,2)];
@@ -36,13 +42,15 @@ for folder = dir(path)'
             fec = abw-sum(l);
             src_perc = 100*sum(l)/abw;
 
-            [fec_allocs, max_qual, max_fps] = simulate( alphas, betas, fec, l, qp, T, templayers );
+            [fec_allocs, max_qual, max_fps] = simulate( alphas, betas, fec, l, qp, T );
             save( [folder.name,'.mat'] )
         else
             load( [folder.name,'.mat'] )
         end
     end
 end
+    
+
 
 %% plot and learn
 figure; hold all;

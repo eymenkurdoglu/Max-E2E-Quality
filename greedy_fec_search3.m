@@ -1,4 +1,4 @@
-function [best_alloc, best_score] = greedy_fec_search3( f, k, alpha, beta )
+function [best_alloc, best_score] = greedy_fec_search3( f, k, alpha, beta, templayers )
 % Faster greedy FEC search. This function finds a distribution of "f" FEC
 % blocks over the frames of size k, such that the expected number of
 % decodable frames is maximized. [best_alloc, best_score] =
@@ -10,7 +10,10 @@ k = k(:);
 N = length(k); % number of frames in the intra-period
 n = max(k)+f+1;
 
-mode = 1; % hP
+mode = 0;
+if templayers > 1
+    mode = 1;
+end
 
 % "0" and "1" duration tail distribution functions and probability mass functions
 P_R = [1,beta*(1-alpha).^(0:n-2)];
@@ -30,7 +33,7 @@ T = [1-beta, alpha; beta, 1-alpha];
 
 best_alloc = zeros(N,1); % initial best allocation: no FEC blocks on frames
 pr = framearrprobs( L0, L1, R0, R1, T, k, best_alloc );
-best_score = calc_score_hpp( pr, mode );
+best_score = calc_score( pr, mode );
 
 for i = 1:f % for each additional FEC block
     

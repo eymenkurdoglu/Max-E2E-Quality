@@ -9,7 +9,7 @@ function [best_alloc, best_score] = greedy_fec_search2( f, k, varargin )
 k = k(:);
 N = length(k); % number of frames in the intra-period
 
-mode = 1; % IPPP
+mode = 0; % IPPP
 
 if length(varargin) == 1
     independent = 1;
@@ -34,7 +34,6 @@ elseif f > 0 % markovian losses
         success(i,1) = q*S(k(i),k(i))/(p+q);
         success(i,2) = ( q*sum(S(k(i):k(i)+1,k(i)+1)) + p*R(1,k(i)+1) )/(p+q);
     end
-    success(:,1)
 else
     success = zeros(N,1);
     n = max(k);
