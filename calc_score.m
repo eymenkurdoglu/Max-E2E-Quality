@@ -1,37 +1,26 @@
-function score = calc_score( success_, mode )
+function score = calc_score( phi, mode )
 % calc_score_hpp calculates the expected number of decodable frames.
 % Success probabilities are directly taken from the "success_" vector.
 
 % We will consider length(k) events (lost I-frame event is not considered
 % as it has no effect on the expectation).
 
-N = length(success_);
+N = length(phi);
 
-if mode == 0 % IPPP structure, this part calculates a + a*b + a*b*c + a*b*c*d + ...
+if mode == 0 % IPPP structure, this part calculates a + a*b + a*b*c + a*b*c*d + ...   
     score = 0;
     for i = N:-1:1
-        score = (score+1)*success_(i);
+        score = (score+1)*phi(i);
     end
 elseif mode == 1 % hPP structure
-    gop = 4;
-    assert( mod(N,gop)==0 );
-
-    G = N/gop; % number of gops assuming gop length is 4
-    base = fliplr(1:4:N);
-
-    success_gop = (reshape(success_, 4, G))';
-    v = ones(G,1) + success_gop(:,2) + success_gop(:,3) + (success_gop(:,3).*success_gop(:,4));
-    cum_v = cumsum(v);
-
-    score = cum_v(end);
-    j = G-1;
-    for i = base
-        if j > 0
-            score = cum_v(j) + (score-cum_v(j))*success_(i);
-        else
-            score = score*success_(i);
-        end
-        j = j-1;
+    G = N/4;
+    s = ( reshape(phi, 4, G) )';
+    b = s(:,1);
+    e = ones(G,1) + s(:,2) + s(:,3) + (s(:,3).*s(:,4));
+    
+    score = 0;
+    for i = G:-1:1
+        score = (score+e(i))*b(i);
     end
 end
 
