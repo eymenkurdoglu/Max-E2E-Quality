@@ -1,9 +1,23 @@
-function best_fec = find_max_qual( alpha, beta, fec, lengths, qp, T, templayers )
+function [best_fec, maxqual, max_num_frames] = heuristic_search( alpha, beta, fec, lengths, q, templayers )
+
+global alpha_q minQS alpha_t maxt ipr
 
 N = size(lengths,1); % intra-period length
+maxqual = 0;
+max_num_frames = 0;
+best_fec = [];
+
+ix = fec >= 0;
+
+if ~any(ix)
+    return
+end
+
+lengths = lengths(:,ix);
+q = q(ix);
+fec = fec(ix);
 
 best_distribution_so_far = zeros(N,1);
-maxqual = 0;
 
 for i = length(fec):-1:1
     
@@ -15,13 +29,13 @@ for i = length(fec):-1:1
         [best_distribution_so_far, max_num_frames] = greedy_fec_search3( fec(i), lengths(:,i), alpha, beta, templayers );
     end
 
-    Q = mnqq(qp(i),4.51,20) * mnqt(max_num_frames/T,3.09,30);
+    Q = mnqq(q(i),alpha_q,minQS) * mnqt(max_num_frames/ipr,alpha_t,maxt);
 
     if Q > maxqual 
         maxqual = Q;
     else
-        fprintf('Max quality found\n')
-        best_fec = i-1;
+%         fprintf('Max quality found\n')
+        best_fec = i+1; % the one before, so i+1
         return
     end
 end

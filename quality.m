@@ -1,13 +1,14 @@
-close all
+% close all
+clear all
 clc
 videos = {'CREW','CITY','FOREMAN','HARBOUR'};
-frame_rates = {'30','15.0'};
+frame_rates = {'30.0','15.0'};
+ipr = 16/15;
 figure;
 for v = 1:length(videos)
 
     video = videos{v};
     
-    qmin = 4;
     tmax = 30;
 
     if      strcmp(video, 'CREW')
@@ -22,13 +23,14 @@ for v = 1:length(videos)
         alpha_q = 4.57; alpha_t = 3.80;
     end
     
-    subplot(3,4,v); hold all;
+    subplot(2,4,v); hold all;
     title(video)
+    q_mean = zeros(2,23);
     qp_mean = zeros(2,23);
     bitrate_mean = zeros(2,23);
     for fr = 1:length(frame_rates)
-
-        path = ['~/Dropbox/Matlab/3_OptimalQuality/data/',video,'-352x288-',frame_rates{fr},'-32-3/'];
+        N = ipr*str2double(frame_rates{fr});
+        path = ['~/Dropbox/Matlab/3_OptimalQuality/data/',video,'-352x288-',frame_rates{fr},'-',num2str(N),'-3/'];
 
         lengths = []; qp = []; rates = [];
         for file = dir( strcat(path,'*.txt') )'
@@ -42,29 +44,25 @@ for v = 1:length(videos)
         lengths = lengths(:,ix);
 %         sum(lengths(:,ix))*0.008/10
         qp = qp(:,ix);
+        q = 2.^((qp-4)./6);
+        q_mean(fr,:) = mean(q);
         qp_mean(fr,:) = mean(qp);
         bitrate_mean(fr,:) = sum(lengths)*0.008/10;
     end  
     
-    q = 2.^((qp_mean-4)./6);
-    qmin = min(min(q));
-    Q = (1-exp(-1*alpha_q*(qmin./q)))/(1-exp(-1*alpha_q))...
-        .* (1-exp(-1*alpha_t*(15./tmax).^0.63))/(1-exp(-1*alpha_t));
-    plot( rates, Q(1,:) ); xlim([0 1200])
-    plot( rates, Q(2,:) )
-    xlabel('target bitrate')
+%     q = 2.^((qp_mean-4)./6); % QP = 4+6*log2(q)
+    qmin = min(min(q_mean));
+    Q = (1-exp(-1*alpha_q*(qmin./q_mean)))/(1-exp(-1*alpha_q));
+    Q(2,:) = Q(2,:) .* (1-exp(-1*alpha_t*(15./tmax).^0.63))/(1-exp(-1*alpha_t));
+    plot( bitrate_mean(1,:), Q(1,:) ); xlim([0 1200]); ylim([0.2 1])
+    plot( bitrate_mean(2,:), Q(2,:) )
+    xlabel('bitrate')
     ylabel('NQQ*NQT')
     legend(frame_rates,'Location','SouthEast')
     
-    subplot(3,4,v+4); hold all;
-    plot( rates, qp_mean(1,:) ); xlim([0 1200])
-    plot( rates, qp_mean(2,:) );
+    subplot(2,4,v+4); hold all;
+    plot( bitrate_mean(1,:), qp_mean(1,:) ); xlim([0 1200])
+    plot( bitrate_mean(2,:), qp_mean(2,:) ); ylim([20 50])
     ylabel('QP')
-    
-    subplot(3,4,v+8); hold all;
-    plot( rates, bitrate_mean(1,:) ); xlim([0 1200]); ylim([0 1200])
-    plot( rates, bitrate_mean(2,:) );
-    plot( rates, rates )
-    ylabel('video bitrate'); xlabel('target bitrate')
-    legend(frame_rates,'Location','SouthEast')
+    xlabel('bitrate')
 end

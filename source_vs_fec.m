@@ -9,7 +9,7 @@ path = '~/Dropbox/Matlab/3_OptimalQuality/data/';
 %% data process
 for folder = dir(path)'
     if folder.isdir && ~( strcmp(folder.name,'.') || strcmp(folder.name,'..') )
-        if ~exist( [folder.name,'.mat'], 'file' )
+        if ~exist( ['./',folder.name,'.mat'], 'file' )
             
             fprintf( 'Could not find prior simulations, simulating for %s\n', folder.name );
             packet_size = 200; % bytes
