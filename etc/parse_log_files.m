@@ -1,4 +1,4 @@
-function [Lengths, QPs, Target_BitRates] = extract( path ) 
+function [Lengths, QPs, Target_BitRates] = parse_log_files( path ) 
 
 Lengths = [];
 QPs = [];

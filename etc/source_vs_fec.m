@@ -1,11 +1,7 @@
-clc
-clear all
-close all
-dbstop if error
-
 path = '~/Dropbox/Matlab/3_OptimalQuality/data/';
 % videos = {};
 % handle = figure;
+
 %% data process
 for folder = dir(path)'
     if folder.isdir && ~( strcmp(folder.name,'.') || strcmp(folder.name,'..') )
@@ -14,9 +10,7 @@ for folder = dir(path)'
             fprintf( 'Could not find prior simulations, simulating for %s\n', folder.name );
             packet_size = 200; % bytes
             alphas = [0.1, 0.05, 0.02, 0.01, 0.005, 0.001];
-%             alphas = 0.05 : .05 : 0.4;
             betas = 9*alphas;
-%             betas = 1-alphas;
             I = 4;
             
             param      = strsplit(folder.name,'-');

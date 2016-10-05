@@ -62,6 +62,7 @@ for i = 1:length(RBR_FRAME_RATES)
         
         % now find the maximum mean NQT we can achieve with M FEC packets
         % and the allocation that achieves this
+        % WILL CHANGE
         [m, NQT] = greedy_fec_search( Total - sum(k) - sum(m), k, tree, PLR, alpha_t, tmax, RBR_IPR, m );
         
         % estimated mean QS at this bitrate
