@@ -1,14 +1,4 @@
 function [best_alloc, best_nqt] = greedy_fec_search( f, k, tree, eps, alpha_t, tmax, ipr, varargin )
-% GREEDY_FEC_SEARCH    greedy search for distributing f FEC packets on
-% frames of length k (should be faster than GREEDY_FEC_SEARCH3 for independent losses)
-% f: total number of FEC blocks we can use
-% k: vector of frame lengths in the intra-period 
-% tree: frame dependency tree struct
-% eps: iid packet loss rate
-% alpha_t, tmax: parameters of NQT
-% ipr: intra-period in seconds
-% in: initial FEC block distribution (varargin)
-% =====================================================================
 
 k = k(:);
 N = length(k); % number of frames in the intra-period
