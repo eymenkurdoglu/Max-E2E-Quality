@@ -1,1 +1,0 @@
-[Qmax, topt, Ropt, mopt] = heuristic_search( 0.01, 0.09, 1000, 3, 'CREW' );

@@ -3,8 +3,8 @@ function P = create_prob_struct( alpha, beta, n )
 % "0" and "1" duration tail distribution functions and probability mass functions
 P_R = [1,beta*(1-alpha).^(0:n-2)];
 P_L = [1,alpha*(1-beta).^(0:n-2)];
-p_R = [1-beta,beta*alpha*(1-alpha).^(0:n-2)];
-p_L = [1-alpha,beta*alpha*(1-beta).^(0:n-2)];
+p_R = [1-beta,alpha*P_R(2:end)];
+p_L = [1-alpha,beta*P_L(2:end)];
 
 L  = create_mtx( n, P_R, p_R ); % Pr(m-1 losses occur in the next n-1 following a loss)
 L0 = create_mtx( n, p_R, p_R ); % Pr(m-1 losses occur in the next n-1 between 2 losses)
@@ -18,7 +18,7 @@ T = [1-beta,   alpha;
        beta, 1-alpha];
    
 ss = [alpha;beta]/(alpha+beta);
-   
+
 P = struct('L0',L0,'L1',L1,'R0',R0,'R1',R1,'T',T,'ss',ss,'alpha',alpha,'beta',beta);
 
 return

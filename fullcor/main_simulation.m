@@ -1,31 +1,33 @@
 close all
 clear all
+clc
 file = 'optimized.mat';
 target = '~/Google Drive/NYU/Research/papers/fec/fig/';
 
 if ~exist( file, 'file' )
     VIDEO = 'CREW';
     L = 3;
-    PLRs = 0.05 : 0.05 : 0.25;
+    P_GBs = [0.01, 0.001];
+    P_BGs = 9*P_GBs;
     SRs  = 100 : 50 : 1300;
     
-    optimalQ = zeros( length(PLRs), length(SRs) );
-    optimaleFR = zeros( length(PLRs), length(SRs) );
-    optimaldFR = zeros( length(PLRs), length(SRs) );
-    optimalRV = zeros( length(PLRs), length(SRs) );
-    optimalm = cell( length(PLRs), length(SRs) );
+    optimalQ = zeros( length(P_GBs), length(SRs) );
+    optimaleFR = zeros( length(P_GBs), length(SRs) );
+    optimaldFR = zeros( length(P_GBs), length(SRs) );
+    optimalRV = zeros( length(P_GBs), length(SRs) );
+    optimalm = cell( length(P_GBs), length(SRs) );
     
-    for i = 1:length(PLRs)
-        PLR = PLRs(i);
-        
-        fprintf('# Simulating for PLR = %f\n', PLR);
+    for i = 1:length(P_GBs)
+        p_gb = P_GBs(i);
+        p_bg = P_GBs(i);
+        fprintf('$$$ Simulating for P_GB = %f, P_BG = %f\n', p_gb,p_bg);
 
         for j = 1:length(SRs)
             SR = SRs(j);
             
-            fprintf('######### Sending rate = %d kbps\n', SR);
+            fprintf('$$$ - Sending rate = %d kbps\n', SR);
             
-            [Qmax, FRopt, RVopt, mopt] = heuristic_search( PLR, SR, L, VIDEO );
+            [Qmax, FRopt, RVopt, mopt] = heuristic_search( p_gb, p_bg, SR, L, VIDEO );
             
             optimalQ(i,j) = Qmax;
             optimaleFR(i,j) = FRopt;
@@ -34,7 +36,7 @@ if ~exist( file, 'file' )
         end
     end
 
-    save(file, 'optimalQ', 'optimaleFR', 'optimalRV', 'optimalm', 'VIDEO', 'PLRs', 'SRs', 'L')
+    save(file, 'optimalQ', 'optimaleFR', 'optimalRV', 'optimalm', 'VIDEO', 'P_GBs', 'P_BGs', 'SRs', 'L')
 else
     load( file )
 end
