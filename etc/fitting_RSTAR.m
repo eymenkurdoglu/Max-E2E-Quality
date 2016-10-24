@@ -25,7 +25,7 @@ for v = 1:length(videos)
     MeanBitrate = zeros(2,23);
     
     for fr = 1:length(frame_rates)
-        [Lengths, QPs, ~] = extract( ['~/Dropbox/Matlab/3_OptimalQuality/data/',video,'-352x288-',frame_rates{fr},'-',num2str(ipr*str2double(frame_rates{fr})),'-3/'] );
+        [Lengths, QPs, ~] = parse_log_files( ['~/Dropbox/Matlab/3_OptimalQuality/data/',video,'-352x288-',frame_rates{fr},'-',num2str(ipr*str2double(frame_rates{fr})),'-3/'] );
         MeanBitrate(fr,:) = sum(Lengths)*0.008/10;
         q_mean(fr,:) = mean( 2.^((QPs-4)./6) );
     end

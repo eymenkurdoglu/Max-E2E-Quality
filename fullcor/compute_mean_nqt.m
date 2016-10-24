@@ -1,4 +1,4 @@
-function mean_quality = compute_mean_nqt( param, markov, k, m )
+function [mean_quality, pmf] = compute_mean_nqt( param, markov, k, m )
 
 pmf = compute_pmf( param.ref, k, m, precompute( markov, k, m ), markov.ss, 1, 0 );
 

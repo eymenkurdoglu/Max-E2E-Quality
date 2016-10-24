@@ -40,7 +40,7 @@ end
             color = 'g';
         end
 
-        [Lengths, QPs, Target_BitRates] = extract(['~/Dropbox/Matlab/3_OptimalQuality/data/',RBR_VIDEOS{v},'-352x288-',RBR_FRAME_RATES{fr},'-',num2str(N),'-3/']); 
+        [Lengths, QPs, Target_BitRates] = parse_log_files(['~/Dropbox/Matlab/3_OptimalQuality/data/',RBR_VIDEOS{v},'-352x288-',RBR_FRAME_RATES{fr},'-',num2str(N),'-3/']); 
 
         avgfrmlen = zeros(RBR_NUM_TEMP_LYRS+1,length(Target_BitRates)); % average frame lengths in each layer per video bitrate
 

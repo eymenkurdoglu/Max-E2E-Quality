@@ -1,4 +1,4 @@
-function [Qmax, topt, Ropt, mopt] = heuristic_search( p_bg, p_gb, R_S, L, video )
+function [Qmax, topt, Ropt, mopt, PMFopt] = heuristic_search( p_bg, p_gb, R_S, L, video )
 % INPUTS: p_bg, p_gb: 2-state loss mechanism parameters, R_S: Sending rate,
 % L: number of temporal layers, video: name of the video sequence, OUTPUTS:
 % Qmax: max achievable perceptual quality, topt: maximizer frame rate,
@@ -27,7 +27,8 @@ for t = RBR_FRAME_RATES
     
     % init
     Markov = create_prob_struct( p_bg, p_gb, Total );
-    prevk = zeros(N,1); m = zeros(N,1); highest_Q_so_far = 0; best_rate_so_far = 0; descending = 0;
+    prevk = zeros(N,1); descending = 0;
+    m = zeros(N,1); highest_Q_so_far = 0; best_rate_so_far = 0; best_pmf_so_far = 0;
 
     for i = 1:length(RBR_VIDEO_BITRATES)
         
@@ -41,7 +42,7 @@ for t = RBR_FRAME_RATES
         fprintf('## Trying video rate = %d kbps, M = %d ==> ',R,M);       
         
         % maximize mean NQT with M FEC packets
-        tic; [m, NQT] = greedy_fec_search( M, k(:,i), Markov, Param, m ); toc;
+        tic; [m, NQT, pmf] = greedy_fec_search( M, k(:,i), Markov, Param, m ); toc;
         
         % estimated mean QS at this bitrate
         q = Param.qmin * ( (R/Param.Rmax)*(t/Param.tmax)^-Param.beta_t )^(-1/Param.beta_q);
@@ -51,6 +52,7 @@ for t = RBR_FRAME_RATES
         
         if Q > highest_Q_so_far
             descending = 0;
+            best_pmf_so_far = pmf;
             highest_Q_so_far = Q;
             best_rate_so_far = R;
             best_alloc_so_far = m;
@@ -64,6 +66,7 @@ for t = RBR_FRAME_RATES
 
     if highest_Q_so_far > Qmax
         Qmax = highest_Q_so_far;
+        PMFopt = best_pmf_so_far;
         topt = t;
         Ropt = best_rate_so_far;
         mopt = best_alloc_so_far;

@@ -36,20 +36,16 @@ Qmax = 0;
 topt = 0;
 Ropt = 0;
 
-for i = 1:length(RBR_FRAME_RATES)
+for t = RBR_FRAME_RATES
     
-    t = RBR_FRAME_RATES(i);
-    N = RBR_IPR * t;
+    N = t * RBR_IPR;
     tree = create_hierP_tree( L, N );
     
     % estimated mean frame lengths (in packets) in each TL at this bitrate
     FrameSizes = ceil( estimate_frame_lengths(t, L, RBR_IPR, RBR_VIDEO_BITRATES) / RBR_PACKET_SIZE );
     
-    prevk = zeros(N,1);
-    m = zeros(N,1);
-    highest_Q_so_far = 0;
-    best_rate_so_far = 0;
-    descending = 0;
+    % init
+    prevk = zeros(N,1); m = zeros(N,1); highest_Q_so_far = 0; best_rate_so_far = 0; descending = 0;
     
     for j = 1:length(RBR_VIDEO_BITRATES)
         

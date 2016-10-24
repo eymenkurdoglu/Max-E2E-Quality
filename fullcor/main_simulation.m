@@ -16,6 +16,7 @@ if ~exist( file, 'file' )
     optimaldFR = zeros( length(P_GBs), length(SRs) );
     optimalRV = zeros( length(P_GBs), length(SRs) );
     optimalm = cell( length(P_GBs), length(SRs) );
+    optimalPMF = cell( length(P_GBs), length(SRs) );
     
     for i = 1:length(P_GBs)
         p_gb = P_GBs(i);
@@ -27,16 +28,17 @@ if ~exist( file, 'file' )
             
             fprintf('$$$ - Sending rate = %d kbps\n', SR);
             
-            [Qmax, FRopt, RVopt, mopt] = heuristic_search( p_gb, p_bg, SR, L, VIDEO );
+            [Qmax, FRopt, RVopt, mopt, PMFopt] = heuristic_search( p_gb, p_bg, SR, L, VIDEO );
             
             optimalQ(i,j) = Qmax;
             optimaleFR(i,j) = FRopt;
             optimalRV(i,j) = RVopt;
             optimalm{i,j} = mopt;
+            optimalPMF{i,j} = PMFopt;
         end
     end
 
-    save(file, 'optimalQ', 'optimaleFR', 'optimalRV', 'optimalm', 'VIDEO', 'P_GBs', 'P_BGs', 'SRs', 'L')
+    save(file, 'optimalQ', 'optimaleFR', 'optimalRV', 'optimalm', 'optimalPMF', 'VIDEO', 'P_GBs', 'P_BGs', 'SRs', 'L')
 else
     load( file )
 end
