@@ -20,7 +20,7 @@ if ~exist( file, 'file' )
     
     for i = 1:length(P_GBs)
         p_gb = P_GBs(i);
-        p_bg = P_GBs(i);
+        p_bg = P_BGs(i);
         fprintf('$$$ Simulating for P_GB = %f, P_BG = %f\n', p_gb,p_bg);
 
         for j = 1:length(SRs)

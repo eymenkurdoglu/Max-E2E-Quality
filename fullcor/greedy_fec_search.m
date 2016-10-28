@@ -11,7 +11,6 @@ end
 
 best_alloc = in;
 % best_nqt = monte_carlo( markov, k, best_alloc, tree, param, 2000 );
-% best_nqt = mnqt( (0:N)/param.ipr, param.alpha_t, param.tmax ) * calculate_pmf( tree, k, best_alloc, markov, markov.ss, 1, N, [] );
 [best_nqt, best_pmf] = compute_mean_nqt( Param, Markov, k, best_alloc );
 while M > 0
     curr_alloc = best_alloc;
@@ -27,7 +26,6 @@ while M > 0
             checked{Param.layermap(j)} = [checked{Param.layermap(j)},[k(j);m(j)]]; 
         end
 
-%         nqt = mnqt( (0:N)/param.ipr, param.alpha_t, param.tmax ) * calculate_pmf( tree, k, m, markov, markov.ss, 1, N, [] );
 %         nqt = monte_carlo( markov, k, m, tree, param, 2000 );
         [nqt, pmf] = compute_mean_nqt( Param, Markov, k, m );
         if nqt >= best_nqt

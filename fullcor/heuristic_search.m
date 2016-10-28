@@ -1,8 +1,4 @@
 function [Qmax, topt, Ropt, mopt, PMFopt] = heuristic_search( p_bg, p_gb, R_S, L, video )
-% INPUTS: p_bg, p_gb: 2-state loss mechanism parameters, R_S: Sending rate,
-% L: number of temporal layers, video: name of the video sequence, OUTPUTS:
-% Qmax: max achievable perceptual quality, topt: maximizer frame rate,
-% Ropt: maximizer video bitrate, mopt: maximizer FEC strategy
 
 RBR_IPR = 16/15;
 RBR_PACKET_SIZE = 200;
