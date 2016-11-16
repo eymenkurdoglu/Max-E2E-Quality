@@ -1,5 +1,5 @@
 clc
-videos = {'CREW','CITY','FOREMAN','HARBOUR','ICE'};
+videos = {'CREW','CITY','FOREMAN','HARBOUR','ICE','FG'};
 frame_rates = {'30.0','15.0'};
 ipr = 16/15;
 figure;
@@ -19,6 +19,8 @@ for v = 1:length(videos)
         alpha_q = 5.61; alpha_t = 3.00; 
     elseif  strcmp(video, 'FOREMAN')    
         alpha_q = 4.57; alpha_t = 3.80;
+    elseif  strcmp(video, 'FG')
+        alpha_q =  10.68; alpha_t = 2.8;
     end
  
     q_mean = zeros(2,23);
@@ -33,7 +35,7 @@ for v = 1:length(videos)
     Q = (1-exp(-1*alpha_q*(min(min(q_mean))./q_mean)))/(1-exp(-1*alpha_q));
     Q(2,:) = Q(2,:) .* (1-exp(-1*alpha_t*(15./tmax).^0.63))/(1-exp(-1*alpha_t));
     
-    subplot(2,5,v); hold all; title(video);
+    subplot(2,length(videos),v); hold all; title(video);
     plot( MeanBitrate(1,:), Q(1,:) ); xlim([0 1200]); ylim([0.2 1])
     plot( MeanBitrate(2,:), Q(2,:) )
     xlabel('bitrate')
@@ -49,7 +51,7 @@ for v = 1:length(videos)
     [model, ~, ~] = fit((log(q_min./q_mean(2,:)))', (log(MeanBitrate(2,:)/R_max))', 'poly1');  
     fprintf([videos{v},': aq=%f, at=%f, Rmax=%f, qmin=%f\n'],model.p1,-1*(model.p2)/log(2),R_max,q_min);
     
-    subplot(2,5,v+5); hold all;
+    subplot(2,length(videos),v+length(videos)); hold all;
     loglog( q_min./q_mean(2,:), MeanBitrate(2,:)/R_max );
     xlabel('Normalized QS')
     ylabel('Normalized bitrate')

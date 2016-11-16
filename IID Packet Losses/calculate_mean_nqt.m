@@ -1,4 +1,4 @@
-function mean_quality = calculate_mean_nqt( tree, phi, alpha_t, tmax, ipr )
+function [mean_quality, pmf] = calculate_mean_nqt( tree, phi, alpha_t, tmax, ipr )
 
 pmf = calculate_pmf_ind( tree, phi );
 

@@ -1,4 +1,4 @@
-function [Qmax, topt, Ropt, mopt, PMFopt] = heuristic_search( p_bg, p_gb, R_S, L, video )
+function [Qmax, topt, Ropt, mopt, PMFopt] = heuristic_search( p_bg, p_gb, R_S, L, video, tryboth )
 
 RBR_IPR = 16/15;
 RBR_PACKET_SIZE = 200;
@@ -10,16 +10,22 @@ RBR_SEARCH_PERSISTENCE = 4;
 Total = floor( R_S*RBR_IPR / (0.008*RBR_PACKET_SIZE) );
 
 %% Start the search
-Qmax = 0; topt = 0; Ropt = 0;
+Qmax = 0;
 
 for t = RBR_FRAME_RATES
     fprintf('# Trying encoding frame rate = %d fps...\n',t);
+    
+    if tryboth == 0 && t ~= 30
+        fprintf('# Skipping FR = %d...\n',t);
+        continue;
+    end
+    
     N = t * RBR_IPR;
     Param = video_param( video, RBR_IPR, L, N );
     
     % estimated mean frame lengths in packets at this frame rate and bitrate
     k = ceil( estimate_frame_lengths(t, L, N, ...
-        RBR_IPR*RBR_VIDEO_BITRATES/0.008) / RBR_PACKET_SIZE );
+        RBR_IPR*RBR_VIDEO_BITRATES/0.008,video) / RBR_PACKET_SIZE );
     
     % init
     Markov = create_prob_struct( p_bg, p_gb, Total );
@@ -35,16 +41,19 @@ for t = RBR_FRAME_RATES
         prevk = k(:,i);
         
         M = Total - sum(k(:,i)) - sum(m);
-        fprintf('## Trying video rate = %d kbps, M = %d ==> ',R,M);       
+        fprintf('## Trying video rate = %d kbps, M = %d ==> ',R,M);      
         
-        % maximize mean NQT with M FEC packets
-        tic; [m, NQT, pmf] = greedy_fec_search( M, k(:,i), Markov, Param, m ); toc;
+        % now find the maximum mean NQT we can achieve with M FEC packets
+        % and the allocation that achieves this
+        [m, NQT, pmf] = greedy_fec_search( M, k(:,i), Markov, Param, m );
         
         % estimated mean QS at this bitrate
         q = Param.qmin * ( (R/Param.Rmax)*(t/Param.tmax)^-Param.beta_t )^(-1/Param.beta_q);
         
         % calculate the subjective perceptual quality at this STAR
-        Q = mnqq(q,Param.alpha_q,Param.qmin) * NQT;
+        NQQ = mnqq(q,Param.alpha_q,Param.qmin);
+        Q = NQQ * NQT;
+        fprintf('Q = %4.4f x %4.4f = %4.4f\n',NQQ,NQT,Q);
         
         if Q > highest_Q_so_far
             descending = 0;
