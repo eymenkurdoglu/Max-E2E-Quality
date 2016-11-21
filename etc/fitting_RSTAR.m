@@ -1,6 +1,7 @@
 clc
 videos = {'CREW','CITY','FOREMAN','HARBOUR','ICE','FG'};
 frame_rates = {'30.0','15.0'};
+L = 1;
 ipr = 16/15;
 figure;
 for v = 1:length(videos)
@@ -27,7 +28,9 @@ for v = 1:length(videos)
     MeanBitrate = zeros(2,23);
     
     for fr = 1:length(frame_rates)
-        [Lengths, QPs, ~] = parse_log_files( ['~/Dropbox/Matlab/3_OptimalQuality/data/',video,'-352x288-',frame_rates{fr},'-',num2str(ipr*str2double(frame_rates{fr})),'-3/'] );
+        [Lengths, QPs, ~] = parse_log_files( ['~/Dropbox/Matlab/3_OptimalQuality/data/'...
+            ,video,'-352x288-',frame_rates{fr},'-',num2str(ipr*str2double(frame_rates{fr}))...
+            ,'-',num2str(L),'/'] );
         MeanBitrate(fr,:) = sum(Lengths)*0.008/10;
         q_mean(fr,:) = mean( 2.^((QPs-4)./6) );
     end
@@ -49,7 +52,7 @@ for v = 1:length(videos)
 %     fprintf('a_q=%f\n',model.p1);
     
     [model, ~, ~] = fit((log(q_min./q_mean(2,:)))', (log(MeanBitrate(2,:)/R_max))', 'poly1');  
-    fprintf([videos{v},': aq=%f, at=%f, Rmax=%f, qmin=%f\n'],model.p1,-1*(model.p2)/log(2),R_max,q_min);
+    fprintf([videos{v},': beta_q = %f; beta_t = %f; Rmax = %f; qmin = %f;\n'],model.p1,-1*(model.p2)/log(2),R_max,q_min);
     
     subplot(2,length(videos),v+length(videos)); hold all;
     loglog( q_min./q_mean(2,:), MeanBitrate(2,:)/R_max );

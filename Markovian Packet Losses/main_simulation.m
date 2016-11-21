@@ -1,8 +1,6 @@
 close all
-clear all
 clc
-% VIDEOS = {'CREW','CITY','HARBOUR','FG'};
-VIDEOS = {'CREW'};
+VIDEOS = {'CREW','CITY','HARBOUR','FG'};
 
 for v = 1:length(VIDEOS)
     
