@@ -150,7 +150,7 @@ function vs = frameSizeModel( vs )
     
     maxValidTargetBitrate = 1200;
     
-    path = ['~/Dropbox/Matlab/3_OptimalQuality/data/',vs.video,'-',vs.vidsize,'-',strcat(...
+    path = ['data/',vs.video,'-',vs.vidsize,'-',strcat(...
         num2str(vs.f),'.0'),'-',num2str(vs.f * vs.ipr),'-',num2str(vs.L),'/'];
     [Lengths, ~, Target_BitRates] = parse_log_files( path ); 
     

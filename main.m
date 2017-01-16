@@ -135,7 +135,7 @@ function [actBitrate, qs] = getQSandR( vs )
         
         f = fr(i);
         
-        datapath = strcat('~/Dropbox/Matlab/3_OptimalQuality/data/',vs.video,'-',vs.vidsize,'-', ...
+        datapath = strcat('data/',vs.video,'-',vs.vidsize,'-', ...
             strcat(num2str(f),'.0'),'-',num2str(vs.ipr*f),'-',num2str(vs.L),'/');
         
         [frameSizes, QPs, targetBitRates] = parse_log_files( datapath );    
