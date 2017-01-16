@@ -34,9 +34,9 @@ for video = sequences
     vs = initstate(video,numLayers,bw(end),intraperiodDur);
     
     % plot the Q(R) for lossless case
-%     figure; hold on;
-%     plot( bw, max( mnqq( vs.q0 .* ( (bw./vs.R0).*(15/vs.fmax)^-vs.beta_f ).^(-1/vs.beta_q), vs.alpha_q, vs.qmin )...
-%         .* mnqt( 15, vs.alpha_f, vs.fmax ), mnqq( vs.q0 .* ( (bw./vs.R0) ).^(-1/vs.beta_q), vs.alpha_q, vs.qmin ) ) )
+    figure; hold on;
+    plot( bw, max( mnqq( vs.q0 .* ( (bw./vs.R0).*(15/vs.fmax)^-vs.beta_f ).^(-1/vs.beta_q), vs.alpha_q, vs.qmin )...
+        .* mnqt( 15, vs.alpha_f, vs.fmax ), mnqq( vs.q0 .* ( (bw./vs.R0) ).^(-1/vs.beta_q), vs.alpha_q, vs.qmin ) ) )
     
     for i = 1:numChains 
         
