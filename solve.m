@@ -1,7 +1,7 @@
 function [NQTmax, NQQmax, fopt, Ropt, mopt, PMFopt] = solve( p_gb, p_bg, bw, vs, fr, piv )
 
 PACKET_SIZE = 200;
-SEARCH_PERSISTENCE = 4*(p_gb/.05);
+SEARCH_PERSISTENCE = 20;
 
 fprintf('##### Sending rate = %d kbps\n', bw)
 
