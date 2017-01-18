@@ -85,6 +85,8 @@ function vs = initstate(video,numLayers,Rmax,intraperiodDur)
         alpha_q = 4.57; alpha_f = 3.80;
     elseif  strcmp(video, 'FG')
         alpha_q = 10.68; alpha_f = 2.8;
+    elseif  strcmp(video, 'SOCCER')
+        alpha_q = 6.31; alpha_f = 2.23;
     end
 
     vs = struct( 'video', video, 'ipr', intraperiodDur, 'vidsize', '704x576', ...
