@@ -16,20 +16,6 @@ for j = 1 : length(sequences)
     numCapacs = length(bw);
     xl = [bw(1) bw(numCapacs)]/1e3;
     
-%     if strcmp(videos{j},'CREW')
-%         color = 'r';
-%     elseif strcmp(videos{j},'CITY')
-%         color = 'm';
-%     elseif strcmp(videos{j},'FOREMAN')
-%         color = 'b';
-%     elseif strcmp(videos{j},'HARBOUR')
-%         color = 'k';
-%     elseif strcmp(videos{j},'ICE')
-%         color = 'g';
-%     elseif strcmp(videos{j},'SOCCER')
-%         color = 'c';
-%     end
-    
     l = cell(1,numChains); % legend strings
     for i = 1:numChains
         l{i}=['PLR = ',num2str(pgb(i))];
@@ -37,15 +23,15 @@ for j = 1 : length(sequences)
     
     figure(f1); subplot(2,2,j);
     plot(bw/1e3,(NQQ.*NQT)');
-    xlabel('Sending Bitrate (Mbps)'); ylabel('Mean end-to-end perc. quality'); title(video); xlim(xl); ylim([0 1])
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 1]); if j == 3; legend(l,'Location','SouthEast'); end
     
     figure(f2); subplot(2,2,j); TotalFECPerc = 100*(1-(R./repmat(bw,numChains,1))');
     plot(bw/1e3,TotalFECPerc);
-    xlabel('Sending Bitrate (Mbps)'); ylabel('FEC bitrate percentage (%)'); title(video); xlim(xl); ylim([0 100])
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 100])
 
     figure(f3); subplot(2,2,j);
     plot(bw/1e3,F');
-    xlabel('Sending Bitrate (Mbps)'); ylabel('Encoding frame rate (Hz)'); title(video); xlim(xl); ylim([0 31])
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 31]); if j == 3; legend(l,'Location','SouthEast'); end
     
     Legend = cell(L+2,1);
     Legend{1} = 'I-Frame';
@@ -76,19 +62,18 @@ for j = 1 : length(sequences)
     scatter(100*pgb,mean(TotalFECPerc(11:end,:)))
     x = linspace(100*min(pgb),100*max(pgb),200); y = x*model.p1+model.p2;   
     TakeAwayPlots(L+2) = plot(x,y);
+    xlabel('Packet Loss Rate (%)'); ylabel('FEC bitrate %'); title(video); ylim([0 55])
     if j == 3
         legend(TakeAwayPlots,Legend,'Location','Best');
     end    
     
 end
 
-% target = '~/Google Drive/NYU/Research/papers/fec/fig/';
-% saveTightFigure(f1,[target,'BestQuality-IID.eps'])
-% saveTightFigure(f2,[target,'BestVideoBitrate-IID.eps'])
-% saveTightFigure(f3,[target,'BestEncFrRate-IID.eps'])
-% saveTightFigure(f4,[target,'BestDecFrRate-IID-IPP.eps'])
-% saveTightFigure(f5,[target,'FECRatesPerLayer-IID.eps'])
-% saveTightFigure(f6,[target,'FECRatesTakeAway-IID-IPP.eps'])
+target = '~/Google Drive/NYU/Research/papers/fec/fig/';
+saveTightFigure(f1,[target,'BestQuality-IID.eps'])
+saveTightFigure(f2,[target,'BestVideoBitrate-IID.eps'])
+saveTightFigure(f3,[target,'BestEncFrRate-IID.eps'])
+saveTightFigure(f4,[target,'FECRatesPerLayer-IID.eps'])
 
 return
 
