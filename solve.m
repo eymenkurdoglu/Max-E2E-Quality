@@ -17,7 +17,6 @@ for f = fr
     vs.N = vs.f * vs.ipr;
     
     vs = intraPeriodStruct( vs );
-    vs = frameSizeModel( vs );
     
     if p_bg + p_gb ~= 1
         if exist( 'markov.mat', file )
@@ -158,7 +157,10 @@ function k = estimFrameSz( vs, R )
     N = vs.N; % number of frames in intra-period
     B = 1000 * vs.ipr * R/8; % byte budget in intra-period
     
-    zhatNorm = fliplr( 1-exp(-vs.theta*(1000*(2.^(0:L-1))./f).^vs.eta) );
+    eta = vs.eta( vs.fr == vs.f );
+    theta = vs.theta( vs.fr == vs.f );
+    
+    zhatNorm = fliplr( 1-exp(-theta*(1000*(2.^(0:L-1))./f).^eta) );
 
     % n: number of P-frames in intra-period per TL, e.g. [7 8 16]
     n = fliplr( N ./ (2.^[ 1:L-1, L-1]) );
