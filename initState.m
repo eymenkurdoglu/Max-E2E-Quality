@@ -76,7 +76,7 @@ function [actBitrate, qs] = getQSandR( vs )
         
         [frameSizes, QPs, targetBitRates] = parse_log_files( datapath );    
 
-        actBitrate{i} = sum(frameSizes)*0.008/10; % vid duration = 10 sec
+        actBitrate{i} = sum(frameSizes)*0.008/(length(frameSizes)/f); % vid duration = #frames/fps
         qs{i}         = mean( 2.^((QPs-4)./6) );
     end
 
@@ -91,15 +91,15 @@ function [actBitrate, qs] = getQSandR( vs )
 
 return
 
-function [beta_q, beta_f, R0, q0] = getRSTARparam( measuredBitrate, q_mean ) 
+function [beta_q, beta_f, R0, q0] = getRSTARparam( actBitrate, qs ) 
 % Get RSTAR parameters with this function.
 % TODO: code here assumes 2 temporal and 1 spatial resolutions, generalize
 % TODO: return RSTARparam struct
-    R0 = max(measuredBitrate(1,:));
-    q0 = min(q_mean(1,:));
+    R0 = max(actBitrate(1,:));
+    q0 = min(qs(1,:));
     
     ft = fittype('rstar( x, a, b )');
-    model = fit((q0./q_mean(2,:))', (measuredBitrate(2,:)/R0)', ft, 'Startpoint', [0 0]);
+    model = fit((q0./qs(2,:))', (actBitrate(2,:)/R0)', ft, 'Startpoint', [0 0]);
     
     beta_q = model.a;
     beta_f = -log2(model.b);
@@ -132,9 +132,9 @@ function vs = frameSizeModel( vs )
             fittype('fitmodel( x, a, b )'), 'Startpoint', [0 0]);
 
         vs.theta( f == vs.fr ) = model.a;
-        vs.eta( f == vs.fr ) = model.b;  
+        vs.eta  ( f == vs.fr ) = model.b;  
         
-        fprintf('%s@%d Hz => theta=%f, eta=%f\n',vs.video,  f, model.a,  model.b);
+        fprintf('%s@%d Hz => theta=%f, eta=%f\n',vs.video,  f, model.a,  model.b );
     
     end
     
