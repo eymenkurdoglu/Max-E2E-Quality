@@ -146,38 +146,6 @@ end
 
 return
 
-function vs = frameSizeModel( vs )
-    
-    maxValidTargetBitrate = 1200;
-    
-    path = ['data/',vs.video,'-',vs.vidsize,'-',strcat(...
-        num2str(vs.f),'.0'),'-',num2str(vs.f * vs.ipr),'-',num2str(vs.L),'/'];
-    [Lengths, ~, Target_BitRates] = parse_log_files( path ); 
-    
-    % choose valid bitrates if need be
-    valid = Target_BitRates <= maxValidTargetBitrate;
-    numValid = sum(valid);
-    Lengths = Lengths(:,valid);
-    
-    meanFrmSz = zeros( vs.L+1, numValid ); % average frame lengths in each layer per video bitrate
-
-    for r = 1:numValid
-        meanFrmSz(:,r) = find_mean_per_layer( Lengths(:,r), vs.f * vs.ipr, vs.L ); % BE CAREFUL!!!!!
-    end
-
-    meanFrmSz = meanFrmSz./repmat(meanFrmSz(1,:),vs.L+1,1); % mean P-frame length/mean I-frame length
-    meanFrmSz(1,:) = [];
-
-    model = fit([1000*fliplr(2.^(0:vs.L-1))/vs.f, 0]', [mean(meanFrmSz,2); 0],...
-        fittype('fitmodel( x, a, b )'), 'Startpoint', [0 0]);
-
-    vs.theta = model.a;
-    vs.eta = model.b;  
-    
-%     fprintf('For f=%f Hz, theta=%f, eta=%f\n', vs.f, vs.theta,  vs.eta);
-    
-return
-
 function k = estimFrameSz( vs, R )
 % estimFrameSz      estimate the sizes of the I and P frames in the
 % intra-period given the target encoding bitrate
@@ -207,29 +175,4 @@ function k = estimFrameSz( vs, R )
         end
     end
     k(1,:) = zhat(1,:);
-return
-
-function mean_x = find_mean_per_layer( x, N, L )
-% find_mean_per_layer       groups the x vector according to the
-% intra-period structure
-%  This function creates cells for each layer + I frames. Then, the entries
-%  of the x vector are put inside the corresponding cells. 
-
-mean_x = cell(1,L+1); % put frame sizes per each layer in their corresponding cell
-
-% P-frames from enhancement layers
-for l = L : -1 : 2
-    mean_x{ l+1 } = x(2 : 2 : end);
-    x(2 : 2 : end) = [];
-end
-
-% I-frames
-mean_x{1} = x(1 : N*2^(1-L) : end);
-x(1 : N*2^(1-L) : end) = [];
-
-% P-frames from base layer
-mean_x{2} = x;
-
-mean_x = (cellfun(@mean, mean_x))';
-
 return

@@ -93,6 +93,10 @@ function vs = initstate(video,numLayers,Rmax,intraperiodDur)
         'alpha_q', alpha_q, 'alpha_f', alpha_f, 'fmax', 30, 'fr', [30 15] );    
     
     vs.maxValidTargetBitrate = 1300;
+    vs.eta = zeros( size(vs.fr) );
+    vs.theta = zeros( size(vs.fr) );
+    
+    vs = frameSizeModel( vs );
     
     % Derive qmin from the IPPP coding, we'll need this for comparison
     % qmin (achieving Q=1) is the QS at Rmax at 30 Hz with IPPP
@@ -169,6 +173,67 @@ function [beta_q, beta_f, R0, q0] = getRSTARparam( measuredBitrate, q_mean )
     
     beta_q = model.a;
     beta_f = -log2(model.b);
+
+return
+
+function vs = frameSizeModel( vs )
+    
+    maxValidTargetBitrate = 1200;
+    
+    for f = vs.fr
+    
+        path = ['data/',vs.video,'-',vs.vidsize,'-',strcat(...
+            num2str(f),'.0'),'-',num2str(f * vs.ipr),'-',num2str(vs.L),'/'];
+        [Lengths, ~, Target_BitRates] = parse_log_files( path ); 
+
+        % choose valid bitrates if need be
+        valid = Target_BitRates <= maxValidTargetBitrate;
+        numValid = sum(valid);
+        Lengths = Lengths(:,valid);
+
+        meanFrmSz = zeros( vs.L+1, numValid ); % average frame lengths in each layer per video bitrate
+
+        for r = 1:numValid
+            meanFrmSz(:,r) = find_mean_per_layer( Lengths(:,r), f * vs.ipr, vs.L ); % BE CAREFUL!!!!!
+        end
+
+        meanFrmSz = meanFrmSz./repmat(meanFrmSz(1,:),vs.L+1,1); % mean P-frame length/mean I-frame length
+        meanFrmSz(1,:) = [];
+
+        model = fit([1000*fliplr(2.^(0:vs.L-1))/f, 0]', [mean(meanFrmSz,2); 0],...
+            fittype('fitmodel( x, a, b )'), 'Startpoint', [0 0]);
+
+        vs.theta( f == vs.fr ) = model.a;
+        vs.eta( f == vs.fr ) = model.b;  
+    
+    end
+    
+%     fprintf('For f=%f Hz, theta=%f, eta=%f\n', vs.f, vs.theta,  vs.eta);
+    
+return
+
+function mean_x = find_mean_per_layer( x, N, L )
+% find_mean_per_layer       groups the x vector according to the
+% intra-period structure
+%  This function creates cells for each layer + I frames. Then, the entries
+%  of the x vector are put inside the corresponding cells. 
+
+mean_x = cell(1,L+1); % put frame sizes per each layer in their corresponding cell
+
+% P-frames from enhancement layers
+for l = L : -1 : 2
+    mean_x{ l+1 } = x(2 : 2 : end);
+    x(2 : 2 : end) = [];
+end
+
+% I-frames
+mean_x{1} = x(1 : N*2^(1-L) : end);
+x(1 : N*2^(1-L) : end) = [];
+
+% P-frames from base layer
+mean_x{2} = x;
+
+mean_x = (cellfun(@mean, mean_x))';
 
 return
 
