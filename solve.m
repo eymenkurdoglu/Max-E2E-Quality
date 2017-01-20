@@ -3,7 +3,7 @@ function [NQTmax, NQQmax, fopt, Ropt, mopt, PMFopt] = solve( p_gb, p_bg, bw, vs,
 PACKET_SIZE = 200;
 SEARCH_PERSISTENCE = 20;
 
-fprintf('##### Sending rate = %d kbps\n', bw)
+% fprintf('##### Sending rate = %d kbps\n', bw)
 
 % total #packets at this sending rate
 totNumPack = floor( bw * vs.ipr / (0.008*PACKET_SIZE) );
@@ -47,7 +47,7 @@ for f = fr
             prevk = k;
         end
         
-        fprintf('%d Hz, %d kbps: ', vs.f, R)
+%         fprintf('%d Hz, %d kbps: ', vs.f, R)
         
         if p_bg + p_gb ~= 1
             [m, NQT, pmf] = gfsmar( totNumPack-sum(k+m), k, markov, vs, m );
@@ -59,10 +59,10 @@ for f = fr
         NQQ = mnqq(q,vs.alpha_q,vs.qmin);     
         Q = NQQ * NQT;
         
-        fprintf('NQT = %f, NQQ = %f, Q = %f ',NQT,NQQ,Q);
+%         fprintf('NQT = %f, NQQ = %f, Q = %f ',NQT,NQQ,Q);
         
         if Q > highest_Q_so_far
-            fprintf('++\n');
+%             fprintf('++\n');
             descending = 0;
             best_pmf_so_far = pmf;
             highest_Q_so_far = Q;
@@ -71,10 +71,10 @@ for f = fr
             best_rate_so_far = R;
             best_alloc_so_far = m;
         else
-            fprintf('--\n');
+%             fprintf('--\n');
             descending = descending + 1;
             if descending > SEARCH_PERSISTENCE
-                fprintf('>> R = %d selected for f = %d\n', best_rate_so_far, f);
+%                 fprintf('>> R = %d selected for f = %d\n', best_rate_so_far, f);
                 break;
             end
         end
@@ -89,7 +89,7 @@ for f = fr
         Ropt = best_rate_so_far;
         mopt = best_alloc_so_far;
     end
-    fprintf('### %d Hz selected and R = %d\n', fopt, Ropt);
+%     fprintf('### %d Hz selected and R = %d\n', fopt, Ropt);
 end
 
 return
