@@ -51,7 +51,8 @@ parfor i = 1:numChains
         if f < 30; fr = 15; end
     end
     
-    NQQ(i,:) = NQQ_; NQT(i,:) = NQT_; F(i,:) = F_; R(i,:) = R_; M{i,:} = M_; D{i,:} = D_;
+    NQQ(i,:) = NQQ_; NQT(i,:) = NQT_; F(i,:) = F_; R(i,:) = R_; M(i,:) = M_; D(i,:) = D_;
+    fprintf( 'done with pgb = %f\n', pgb(i) );
 end
 
 save(matFile,'NQQ','NQT','F','R','M','D','pgb','pbg','bw','numLayers','vs','PACKET_SIZE')

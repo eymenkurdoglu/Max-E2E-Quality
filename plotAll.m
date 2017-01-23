@@ -1,6 +1,6 @@
 function plotAll( sequences, L )
 close all
-
+dbstop if error
 f1 = figure;
 f2 = figure;
 f3 = figure;
