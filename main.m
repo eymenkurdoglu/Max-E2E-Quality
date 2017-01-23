@@ -44,7 +44,7 @@ parfor i = 1:numChains
 
         [nqt,nqq,f,r,m,d] = solve( pgb(i), pbg(i), BW(j), vs, fr, piv );
 
-        NQQ_(j) = nqq; NQT_(j) = nqt; F_(j) = f; R_(j) = r; M_{j} = m; D_{j} = d;
+        NQQ_(j) = nqq; NQT_(j) = nqt; F_(j) = f; R_(j) = r; M_(j) = m; D_{j} = d;
 
         piv = 1-((1-r/bw(j))*0.6);
 %         fprintf('### FEC perc = %f, pivot set to %f\n',100*(1-r/bw(j)),piv)
