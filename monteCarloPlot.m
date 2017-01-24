@@ -9,6 +9,11 @@ numCapacs = length(bw);
 
 PGB = pgb;
 PBG = pbg;
+F_ = F;
+M_ = M;
+
+F = F_;
+M = M_;
 
 T(1) =  create_hierP_tree( L, 16 );
 T(2) =  create_hierP_tree( L, 32 );
