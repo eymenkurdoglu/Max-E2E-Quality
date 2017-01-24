@@ -1,6 +1,6 @@
 function plotAll( sequences, L )
 close all
-dbstop if error
+
 f1 = figure;
 f2 = figure;
 f3 = figure;
@@ -70,10 +70,10 @@ for j = 1 : length(sequences)
 end
 
 target = '~/Google Drive/NYU/Research/papers/fec/fig/';
-saveTightFigure(f1,[target,'BestQuality-IID.eps'])
-saveTightFigure(f2,[target,'BestVideoBitrate-IID.eps'])
-saveTightFigure(f3,[target,'BestEncFrRate-IID.eps'])
-saveTightFigure(f4,[target,'FECRatesPerLayer-IID.eps'])
+saveTightFigure(f1,[target,'quality-',num2str(L),'-IID.eps'])
+saveTightFigure(f2,[target,'videoBitrate-',num2str(L),'-IID.eps'])
+saveTightFigure(f3,[target,'encFrRate-',num2str(L),'-IID.eps'])
+saveTightFigure(f4,[target,'fecRatesPerLayer-',num2str(L),'-IID.eps'])
 
 return
 

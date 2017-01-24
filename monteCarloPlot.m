@@ -9,7 +9,6 @@ numCapacs = length(bw);
 
 PGB = pgb;
 PBG = pbg;
-BW = bw;
 
 T(1) =  create_hierP_tree( L, 16 );
 T(2) =  create_hierP_tree( L, 32 );
@@ -33,8 +32,6 @@ parfor i = 1:numChains
     
     for j = 1:numCapacs
         
-        bw_ = BW(j);
-        
         k = K{i,j};
         m = M{i,j};    
         
@@ -45,7 +42,7 @@ parfor i = 1:numChains
         for t = 1:numRun % mc
             
             if iid; packetLossPattern = rand(1,sum(k+m)) > p_gb; end
-            if vs.f == 15; tree = T(1); else tree = T(2); end
+            if F(i,j) == 15; tree = T(1); else tree = T(2); end
             
             end_ = 0;
             for u = 1:N
@@ -65,7 +62,6 @@ parfor i = 1:numChains
         end
         MeanFrameIntervals(i,j) = meanFrameInterval / numRun;
         StdFrameIntervals(i,j) = stdFrameInterval / numRun;
-        fprintf('Done with pgb number %d, bw number %d\n', i, j)
     end
 end
 
