@@ -1,4 +1,4 @@
-function [MeanFrameIntervals, StdFrameIntervals] = monteCarloPlot(video,L,numRun)
+function monteCarloPlot(video,L,numRun)
 
 dbstop if error
 
@@ -20,6 +20,8 @@ T(2) =  create_hierP_tree( L, 32 );
 
 MeanFrameIntervals = zeros(numChains,numCapacs);
 StdFrameIntervals = zeros(numChains,numCapacs);
+MeanNumDecFrames = zeros(numChains,numCapacs);
+numFreezes = zeros(numChains,numCapacs);
 
 K = cell(numChains,numCapacs);
 for i = 1:numChains 
@@ -42,7 +44,7 @@ parfor i = 1:numChains
         
         assert( length(m) == length(k) ); N = length(m);
         
-        meanFrameInterval = 0; stdFrameInterval = 0;
+        meanFrameInterval = 0; stdFrameInterval = 0; MeanNumDecFrame = 0; fullEmpty = 0;
         
         for t = 1:numRun % mc
             
@@ -61,15 +63,27 @@ parfor i = 1:numChains
             end
             
             % gather stats
-            intervals = diff( sort( [cell2mat( tree.Node ); N+1] ) );
-            if ~isempty( intervals ); meanFrameInterval = meanFrameInterval + mean(intervals); 
-                stdFrameInterval = stdFrameInterval + std(intervals); end
+            intervals = diff( sort( [cell2mat( tree.Node ); N+1] ) ) / F(i,j);
+
+            if ~isempty( intervals ); 
+                pdf = intervals'/sum(intervals);
+                timeAvgInterval = pdf * intervals;
+                timeStdInterval = sqrt( (pdf * (intervals-timeAvgInterval)).^2 );
+
+                meanFrameInterval = meanFrameInterval + timeAvgInterval; 
+                stdFrameInterval = stdFrameInterval + timeStdInterval; 
+                MeanNumDecFrame = MeanNumDecFrame + tree.nnodes;
+            else
+                fullEmpty = fullEmpty + 1;
+            end
         end
         MeanFrameIntervals(i,j) = meanFrameInterval / numRun;
         StdFrameIntervals(i,j) = stdFrameInterval / numRun;
+        MeanNumDecFrames(i,j) = MeanNumDecFrame / numRun;
+        numFreezes(i,j) = fullEmpty;
     end
 end
-
+save([video,'-',num2str(L),'-MC.mat'],'MeanFrameIntervals','StdFrameIntervals','MeanNumDecFrames','numFreezes')
 return
 
 function t = create_hierP_tree( L, N )
