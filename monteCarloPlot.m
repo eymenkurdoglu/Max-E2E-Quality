@@ -68,7 +68,7 @@ parfor i = 1:numChains
             if ~isempty( intervals ); 
                 pdf = intervals'/sum(intervals);
                 timeAvgInterval = pdf * intervals;
-                timeStdInterval = sqrt( (pdf * (intervals-timeAvgInterval)).^2 );
+                timeStdInterval = sqrt( pdf * ((intervals-timeAvgInterval).^2) );
 
                 meanFrameInterval = meanFrameInterval + timeAvgInterval; 
                 stdFrameInterval = stdFrameInterval + timeStdInterval; 

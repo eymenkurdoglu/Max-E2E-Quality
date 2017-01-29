@@ -1,6 +1,8 @@
 function plotAll( sequences, L )
 close all
 
+%% 2x2 plots, section a
+
 f1 = figure;
 f2 = figure;
 f3 = figure;
@@ -68,12 +70,44 @@ for j = 1 : length(sequences)
     end    
     
 end
+ 
+% target = '~/Google Drive/NYU/Research/papers/fec/fig/';
+% saveTightFigure(f1,[target,'quality-',num2str(L),'-IID.eps'])
+% saveTightFigure(f2,[target,'videoBitrate-',num2str(L),'-IID.eps'])
+% saveTightFigure(f3,[target,'encFrRate-',num2str(L),'-IID.eps'])
+% saveTightFigure(f4,[target,'fecRatesPerLayer-',num2str(L),'-IID.eps'])
 
-target = '~/Google Drive/NYU/Research/papers/fec/fig/';
-saveTightFigure(f1,[target,'quality-',num2str(L),'-IID.eps'])
-saveTightFigure(f2,[target,'videoBitrate-',num2str(L),'-IID.eps'])
-saveTightFigure(f3,[target,'encFrRate-',num2str(L),'-IID.eps'])
-saveTightFigure(f4,[target,'fecRatesPerLayer-',num2str(L),'-IID.eps'])
+%% comparison, section b
+f5 = figure;
+f6 = figure;
+f7 = figure;
+
+for j = 1 : length(sequences)
+    
+    video = sequences{j};
+    
+    for L = [1 3]        
+        load([video,'-',num2str(L),'.mat'])        
+        if L == 1; Q = (NQQ.*NQT)'; else Q = Q - (NQQ.*NQT)'; end
+        if L == 1; MFI = MeanFrameIntervals'; else MFI = MFI - MeanFrameIntervals'; end
+        if L == 1; SFI = StdFrameIntervals'; else SFI = SFI - StdFrameIntervals'; end
+    end
+    
+    figure(f5); subplot(2,2,j);
+    plot(bw/1e3,Q);
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
+            'SouthEast'); end
+    
+    figure(f6); subplot(2,2,j);
+    plot(bw/1e3,30*MFI);
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
+            'SouthEast'); end
+    
+    figure(f7); subplot(2,2,j);
+    plot(bw/1e3,30*SFI);
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
+            'SouthEast'); end    
+end
 
 return
 
