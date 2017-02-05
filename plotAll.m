@@ -7,12 +7,19 @@ f1 = figure;
 f2 = figure;
 f3 = figure;
 f4 = figure;
+f5 = figure;
+f6 = figure;
+f7 = figure;
+f8 = figure;
+f9 = figure;
+f10 = figure;
 
 for j = 1 : length(sequences)
     
     video = sequences{j};
     
     load([video,'-',num2str(L),'.mat'])
+    load([video,'-',num2str(L),'-MC.mat'])
     
     numChains = length(pgb);
     numCapacs = length(bw);
@@ -24,16 +31,26 @@ for j = 1 : length(sequences)
     end
     
     figure(f1); subplot(2,2,j);
-    plot(bw/1e3,(NQQ.*NQT)');
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 1]); if j == 3; legend(l,'Location','SouthEast'); end
+    plot(bw/1e3,(NQQ.*NQT)'); ylabel('QSTAR');
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 1]); if j == 3; legend(l,'Location','Best'); end
     
-    figure(f2); subplot(2,2,j); TotalFECPerc = 100*(1-(R./repmat(bw,numChains,1))');
+    figure(f2); subplot(2,2,j);
+    plot(bw/1e3,NQQ'); ylabel('NQQ');
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
+            'Best'); end
+    
+    figure(f3); subplot(2,2,j);
+    plot(bw/1e3,NQT'); ylabel('NQT');
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
+            'Best'); end    
+    
+    figure(f4); subplot(2,2,j); TotalFECPerc = 100*(1-(R./repmat(bw,numChains,1))');
     plot(bw/1e3,TotalFECPerc);
     xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 100])
 
-    figure(f3); subplot(2,2,j);
+    figure(f5); subplot(2,2,j);
     plot(bw/1e3,F');
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 31]); if j == 3; legend(l,'Location','SouthEast'); end
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 31]); if j == 3; legend(l,'Location','Best'); end
     
     Legend = cell(L+2,1);
     Legend{1} = 'I-Frame';
@@ -54,7 +71,7 @@ for j = 1 : length(sequences)
     end
     meanFECrates = squeeze( mean(meanFECrates(:,:,:),2) );
     
-    figure(f4); subplot(2,2,j); hold all; box on; title(video); 
+    figure(f6); subplot(2,2,j); hold all; box on; title(video); 
     TakeAwayPlots = zeros(L+2,1);
     for v = 1:L+1
         TakeAwayPlots(v) = plot(100*pgb,meanFECrates(:,v));
@@ -67,7 +84,27 @@ for j = 1 : length(sequences)
     xlabel('Packet Loss Rate (%)'); ylabel('FEC bitrate %'); title(video); ylim([0 55])
     if j == 3
         legend(TakeAwayPlots,Legend,'Location','Best');
-    end    
+    end
+    
+    figure(f7); subplot(2,2,j);
+    plot(bw/1e3,30*MeanFrameIntervals'); ylabel('Mean Frame Interval'); ylim([0 15])
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
+            'Best'); end
+    
+    figure(f8); subplot(2,2,j);
+    plot(bw/1e3,30*StdFrameIntervals'); ylabel('Std Frame Interval'); ylim([0 10])
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
+            'Best'); end
+    
+    figure(f9); subplot(2,2,j);
+    plot(bw/1e3,numFreezes'/100e3); ylabel('Pr(Frz)'); ylim([0 0.025])
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
+            'Best'); end
+    
+    figure(f10); subplot(2,2,j);
+    plot(bw/1e3,MeanNumDecFrames'); ylabel('MNDF');
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
+            'Best'); end  
     
 end
  
@@ -76,67 +113,6 @@ end
 % saveTightFigure(f2,[target,'videoBitrate-',num2str(L),'-IID.eps'])
 % saveTightFigure(f3,[target,'encFrRate-',num2str(L),'-IID.eps'])
 % saveTightFigure(f4,[target,'fecRatesPerLayer-',num2str(L),'-IID.eps'])
-
-%% comparison, section b
-f5 = figure;
-f6 = figure;
-f7 = figure;
-f8 = figure;
-f9 = figure;
-f10 = figure;
-f11 = figure;
-
-for j = 1 : length(sequences)
-    
-    video = sequences{j};
-    
-    for L = [1 3]        
-        load([video,'-',num2str(L),'.mat'])        
-        if L == 1; Q = (NQQ.*NQT)'; else Q = Q - (NQQ.*NQT)'; end
-        if L == 1; nqq = NQQ'; else nqq = nqq - NQQ'; end
-        if L == 1; nqt = NQT'; else nqt = nqt - NQT'; end
-        load([video,'-',num2str(L),'-MC.mat'])
-        if L == 1; MFI = MeanFrameIntervals'; else MFI = MFI - MeanFrameIntervals'; end
-        if L == 1; SFI = StdFrameIntervals'; else SFI = SFI - StdFrameIntervals'; end
-        if L == 1; FRP = numFreezes'/100e3; else FRP = FRP - numFreezes'/100e3; end
-        if L == 1; MNDF = MeanNumDecFrames'; else MNDF = MNDF - MeanNumDecFrames'; end
-    end
-    
-    figure(f5); subplot(2,2,j);
-    plot(bw/1e3,Q); if  j == 1; ylabel('Q_{IPP}-Q_{hPP}'); end
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'SouthEast'); end
-    
-    figure(f6); subplot(2,2,j);
-    plot(bw/1e3,30*MFI); if  j == 1; ylabel('Mean_{IPP}-Mean_{hPP}'); end
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'SouthEast'); end
-    
-    figure(f7); subplot(2,2,j);
-    plot(bw/1e3,30*SFI); if  j == 1; ylabel('Std_{IPP}-Std_{hPP}'); end
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'SouthEast'); end
-    
-    figure(f8); subplot(2,2,j);
-    plot(bw/1e3,FRP); if  j == 1; ylabel('Pr_{IPP}(Fr)-Pr_{hPP}(Fr)'); end
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'SouthEast'); end
-    
-    figure(f9); subplot(2,2,j);
-    plot(bw/1e3,nqq); if  j == 1; ylabel('NQQ_{IPP}-NQQ_{hPP}'); end
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'SouthEast'); end
-    
-    figure(f10); subplot(2,2,j);
-    plot(bw/1e3,nqt); if  j == 1; ylabel('NQT_{IPP}-NQT_{hPP}'); end
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'SouthEast'); end
-    
-    figure(f11); subplot(2,2,j);
-    plot(bw/1e3,MNDF); if  j == 1; ylabel('MNDF_{IPP}-MNDF_{hPP}'); end
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'SouthEast'); end    
-end
 
 return
 
