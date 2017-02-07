@@ -1,5 +1,5 @@
 function plotDiff( sequences )
-close all
+% close all
 
 %% 2x2 plots, section a
 

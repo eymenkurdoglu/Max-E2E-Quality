@@ -1,5 +1,7 @@
 function main( video, pgb, pbg, bw, numLayers )
 
+dbstop if error
+
 PACKET_SIZE = 200;
 intraperiodDur = 16/15;
 
@@ -15,7 +17,7 @@ elseif ~all(diff(bw) > 0)
 end
 
     
-matFile = [video,'-',num2str(numLayers),'.mat'];
+matFile = [video,'-',num2str(numLayers),'-deneme.mat'];
 
 if exist( matFile, 'file' )
     display 'Prior results found, move them somewhere else first'
@@ -33,7 +35,7 @@ figure; hold on;
 plot( bw, max( mnqq( vs.q0 .* ( (bw./vs.R0).*(15/vs.fmax)^-vs.beta_f ).^(-1/vs.beta_q), vs.alpha_q, vs.qmin )...
     .* mnqt( 15, vs.alpha_f, vs.fmax ), mnqq( vs.q0 .* ( (bw./vs.R0) ).^(-1/vs.beta_q), vs.alpha_q, vs.qmin ) ) )
 
-parfor i = 1:numChains 
+for i = 1:numChains 
 
     piv = 1; fr = [30 15]; BW = bw;
     

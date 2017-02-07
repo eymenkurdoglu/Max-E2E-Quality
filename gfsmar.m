@@ -1,19 +1,18 @@
-function [bestAlloc, bestNqt, bestPMF] = gfsmar( M, k, Markov, Param, bestAlloc )
+function [bestAlloc, bestNqt, bestPMF] = gfsmar( M, k, Markov, vs, bestAlloc )
 
 k = k(:);
 
-maxFrameRate = calcFrameRate( calcFrameArrvProbs( Markov, Param.referenceMap, k, bestAlloc ), ...
-    Param.numTempLayers, 1 );
+maxMeanNumDecFr = calcMeanNumDecFr( calcFrameArrvProbs( Markov, vs.referenceOf, k, bestAlloc ), vs.L, 1 );
 
 while M > 0
     
-    checkedFramesFrom = cell( 1, Param.numTempLayers ); % don't check equal-sized frames from same layer
+    checkedFramesFrom = cell( 1, vs.L ); % don't check equal-sized frames from same layer
     
     for j = 1 : length(k)
         
         m = bestAlloc;
         
-        thisLayer = Param.layerMap(j);
+        thisLayer = vs.layerOf(j);
         if ~isempty( checkedFramesFrom{ thisLayer } ) && ... % < prevent 'exceeds mtx dimensions'
                 any( checkedFramesFrom{ thisLayer }(1,:) == k(j) & checkedFramesFrom{ thisLayer }(2,:) == m(j) )
             continue;
@@ -22,9 +21,9 @@ while M > 0
             m(j) = m(j) + 1;
         end
 
-        value = calcFrameRate( calcFrameArrvProbs( Markov, Param.referenceMap, k, m ), Param.numTempLayers, 1 );
-        if value >= maxFrameRate
-            maxFrameRate = value;
+        value = calcMeanNumDecFr( calcFrameArrvProbs( Markov, vs.referenceOf, k, m ), vs.L, 1 );
+        if value >= maxMeanNumDecFr
+            maxMeanNumDecFr = value;
             pickedFrame = j;
         end
     end
@@ -34,36 +33,39 @@ while M > 0
     M = M-1;
 end
 
-bestPMF = compPmf( Param.numDescendants, k, bestAlloc, precompute( Markov, k, bestAlloc ), Markov.ss, 1, 0 );
+bestPMF = compPmf( vs.numDescendants, k, bestAlloc, precompute( Markov, k, bestAlloc ), Markov.ss, 1, 0 );
 
-bestNqt = mnqt( (0:length(k))/Param.ipr, Param.alpha_t, Param.tmax ) * pmf;
+bestNqt = mnqt( (0:length(k))/vs.ipr, vs.alpha_f, vs.fmax ) * bestPMF;
 return
 
-function framerate = calcFrameRate( p, L, topLevel )
-% always call with topLevel==1 at highest level of recursion
+function meanNumDecFr = calcMeanNumDecFr( p, L, topLevel )
+%calcFrameRate   This function calculates the expected number of decoded
+%frames, given the frame arrival probabilities and the number of layers in
+%the hierarchical-P structure. Always call with topLevel==1 at highest
+%level of recursion.
 
-framerate = 0;
+meanNumDecFr = 0;
 
 if L == 0
-    framerate = 1;
+    meanNumDecFr = 1;
 else
-    g = 2^(L-1); % gop length
+    gopSize = 2^(L-1); % gop length
     
-    G = length(p)/g; % num of gops
+    numGops = length(p)/gopSize; % num of gops
     
-    s = ( reshape(p, g, G) )';
+    s = ( reshape(p, gopSize, numGops) )';
     
-    for i = G:-1:1
+    for i = numGops:-1:1
         if i > 1
-            framerate = (framerate + calcFrameRate( s(i,:), L-1, 0 )) * s(i,1);
+            meanNumDecFr = (meanNumDecFr + calcMeanNumDecFr( s(i,:), L-1, 0 )) * s(i,1);
         else
-            framerate = (framerate + calcFrameRate( s(i,:), L-1, 0 ));
+            meanNumDecFr = (meanNumDecFr + calcMeanNumDecFr( s(i,:), L-1, 0 ));
         end
-    end 
+    end
 end
 
 if topLevel
-    framerate = framerate * p(1);
+    meanNumDecFr = meanNumDecFr * p(1);
 end
 
 return
@@ -79,10 +81,10 @@ for i = 1:N
     if ul == 0
         Arrv{i} = [0,0;0,1]; Loss{i} = [1,0;0,0];
     else
-    Arrv{i} = [ sum( markov.L0(1 : m(i)-1, ul) ), sum( markov.R0(k(i) : ul, ul) ); 
-        sum( markov.L1(1 : m(i), ul) ), sum( markov.R1(k(i)-1 : ul, ul) ) ];
-    Loss{i} = [ sum( markov.L0(max(m(i),1) : ul, ul) ), sum( markov.R0(1 : k(i)-1, ul) );
-        sum( markov.L1(m(i)+1 : ul, ul) ), sum( markov.R1(1 : k(i)-2, ul) ) ];
+        Arrv{i} = [ sum( markov.L0(1 : m(i)-1, ul) ), sum( markov.R0(k(i) : ul, ul) ); 
+            sum( markov.L1(1 : m(i), ul) ), sum( markov.R1(k(i)-1 : ul, ul) ) ];
+        Loss{i} = [ sum( markov.L0(max(m(i),1) : ul, ul) ), sum( markov.R0(1 : k(i)-1, ul) );
+            sum( markov.L1(m(i)+1 : ul, ul) ), sum( markov.R1(1 : k(i)-2, ul) ) ];
     end
 end
 
@@ -142,4 +144,39 @@ else
     pmf = compPmfTree( tree, k, m, markov, prob, i+1, N, children );
 end
 
+return
+
+function p = calcFrameArrvProbs( markov, referenceOf, k, m )
+%calcFrameArrvProbs   This function calculates the probability of arrival
+%for each frame in the intra-period for the Markovian channels. The inputs
+%are the frame sizes (k), number of FEC packets (m), the reference frame
+%list for each frame, and finally the Markovian matrices. Output is a Nx1
+%column vector of arrival probabilities.
+
+p = zeros(2,length(k));
+
+for i = 1:length(k)
+    
+    upperLimit = k(i)+m(i)-1;
+    
+    % what is Arrv?
+    if upperLimit == 0 % <=> k(i)=1, m(i)=0 for this frame
+        Arrv = [0,0;   ...
+                0,1];
+    else
+        Arrv = [ sum( markov.L0(1 : m(i)-1, upperLimit) ), sum( markov.R0(k(i) : upperLimit, upperLimit) ); ...
+                 sum( markov.L1(1 : m(i), upperLimit) ), sum( markov.R1(k(i)-1 : upperLimit, upperLimit) ) ];
+    end
+      
+    refFrame = referenceOf(i);
+    
+    if refFrame == 0 % I-frame
+        p(:,i) = Arrv * markov.ss;
+    else
+        inb = refFrame+1 : i-1; %inb(1) = []; inb(end) = []; !!!!!!!!!!!!!!!!!!!
+        p(:,i) = Arrv * markov.T^(1 + sum( k(inb) + m(inb) )) * p(:,refFrame)/sum(p(:,refFrame));
+    end
+    
+end
+p = (sum(p))';
 return

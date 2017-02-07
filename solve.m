@@ -19,12 +19,13 @@ for f = fr
     vs = intraPeriodStruct( vs );
     
     if p_bg + p_gb ~= 1
-        if exist( 'markov.mat', file )
-            load markov.mat
+        markovFileName = ['markov-',num2str(10*(1/p_bg)),'-',num2str(10*p_gb/(p_gb+p_bg)),'.mat'];
+        if exist( markovFileName, 'file' )
+            load(markovFileName)
             assert( size(markov.L0,1) >= totNumPack )
         else
             markov = create_prob_struct( p_bg, p_gb, totNumPack );
-            save markov.mat markov
+            save(markovFileName, 'markov')
         end
     end
     
@@ -99,31 +100,31 @@ function vs = intraPeriodStruct( vs )
     L = vs.L;
     N = vs.N;
     
-    ref = zeros(1,N);
+    numDescendants = zeros(1,N); % number of descendants
     gop = 2^(L-1);
-    all_indices_so_far = 1 : gop : N;
+    all_indices_so_far = 1 : gop : N; % base layer frames
     
     for i = all_indices_so_far
-        ref(i) = N-i;
+        numDescendants(i) = N-i;
     end
     
     while length(all_indices_so_far) < N
         gop = gop/2;
-        ref( all_indices_so_far + gop ) = gop - 1;
+        numDescendants( all_indices_so_far + gop ) = gop - 1;
         all_indices_so_far = [all_indices_so_far, all_indices_so_far + gop];
     end
 
-    vs.ref = ref;
+    vs.numDescendants = numDescendants;
 
-    layermap = zeros(N,1);
+    layerOf = zeros(N,1);
     for layer = L : -1 : 1   
-        layermap(mod(0:N-1,2^(L-layer))==0) = layer;
+        layerOf(mod(0:N-1,2^(L-layer))==0) = layer;
     end
 
-    vs.layermap = layermap;
-
+    vs.layerOf = layerOf;
     vs.t = create_hierP_tree( L, N );
-
+    vs.referenceOf = createReferenceMap(vs.t);
+    
 return
 
 function t = create_hierP_tree( L, N )
@@ -140,6 +141,22 @@ while nnodes(t) ~= N
     for node = t.nodeorderiterator
         index = t.get( node );
         t = t.addnode( node, index + gop );
+    end
+end
+
+return
+
+function referenceMap = createReferenceMap(tree)
+
+referenceMap = zeros(tree.nnodes,1);
+for i = 1:tree.nnodes
+    d = tree.Parent(find(tree==i));
+    if d == 0
+        assert(i==1);
+        referenceMap(i) = 0;
+    else
+        d = tree.Node(tree.Parent(find(tree==i)));
+        referenceMap(i) = d{1};
     end
 end
 
