@@ -1,119 +1,142 @@
 function plotAll( sequences, L )
-close all
+
+willPlotNQQandNQT = 0;
+willPlotMonteCarlo = 0;
+willSavePlotsAsEps = 1;
+thisIsMarkovian = 1;
+fourSeq = 0;
+
+channel = '';
+if thisIsMarkovian; channel = '-Markov'; end
+if length(sequences) > 1; fourSeq = 1; end
 
 %% 2x2 plots, section a
-
-f1 = figure;
-f2 = figure;
-f3 = figure;
-f4 = figure;
-f5 = figure;
-f6 = figure;
-f7 = figure;
-f8 = figure;
-f9 = figure;
-f10 = figure;
+close all
+f1 = figure; f4 = figure; f5 = figure; f6 = figure;
+if willPlotNQQandNQT;  f2 = figure; f3 = figure; end
+if willPlotMonteCarlo; f7 = figure; f8 = figure; f9 = figure; f10 = figure; end
 
 for j = 1 : length(sequences)
     
     video = sequences{j};
     
-    load([video,'-',num2str(L),'.mat'])
-    load([video,'-',num2str(L),'-MC.mat'])
+    load([video,'-',num2str(L),channel,'.mat'])
     
-    numChains = length(pgb)-1;
+    epsilon = pgb./(pgb+pbg);
+    epsilon = epsilon(epsilon <= 0.2);
+
+    numChains = length(epsilon);
     numCapacs = length(bw);
+    
+    lambda = 1./pbg(1:numChains);
+    
     xl = [bw(1) bw(numCapacs)]/1e3;
+    
+    TotalFECPerc = 100*(1-(R(1:numChains,:)./repmat(bw,numChains,1))');
     
     l = cell(1,numChains); % legend strings
     for i = 1:numChains
-        l{i}=['PLR = ',num2str(pgb(i))];
+        if thisIsMarkovian
+            l{i}=['\lambda = ',num2str(lambda(i))];
+        else
+            l{i}=['PLR = ',num2str(pgb(i))];
+        end
     end
     
-    figure(f1); subplot(2,2,j);
+    figure(f1); if fourSeq; subplot(2,2,j); end
     plot(bw/1e3,(NQQ(1:numChains,:).*NQT(1:numChains,:))'); %ylabel('QSTAR');
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 1]); if j == 3; legend(l,'Location','Best'); end
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 1]); 
+    if j == 3 || ~fourSeq; legend(l,'Location','Best'); end
     
-    figure(f2); subplot(2,2,j);
-    plot(bw/1e3,NQQ(1:numChains,:)'); ylabel('NQQ');
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'Best'); end
-    
-    figure(f3); subplot(2,2,j);
-    plot(bw/1e3,NQT(1:numChains,:)'); ylabel('NQT');
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'Best'); end    
-    
-    figure(f4); subplot(2,2,j); TotalFECPerc = 100*(1-(R(1:numChains,:)./repmat(bw,numChains,1))');
-    plot(bw/1e3,TotalFECPerc);
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 100]); if j == 3; legend(l,'Location','Best'); end
+    if willPlotNQQandNQT
+        figure(f2); subplot(2,2,j);
+        plot(bw/1e3,NQQ(1:numChains,:)'); ylabel('NQQ');
+        xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
+                'Best'); end
 
-    figure(f5); subplot(2,2,j);
-    plot(bw/1e3,F(1:numChains,:)');
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 31]); if j == 3; legend(l,'Location','Best'); end
-    
-    Legend = cell(L+2,1);
-    Legend{1} = 'I-Frame';
-    for u = 1:L
-        Legend{u+1} = ['TL(',num2str(u),')'];
+        figure(f3); subplot(2,2,j);
+        plot(bw/1e3,NQT(1:numChains,:)'); ylabel('NQT');
+        xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
+                'Best'); end 
     end
-    Legend{L+2} = 'Overall';
+    
+    figure(f4); if fourSeq; subplot(2,2,j); end
+    plot(bw/1e3,TotalFECPerc);
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 100]); 
+    if j == 3 || ~fourSeq; legend(l,'Location','Best'); end
+
+    figure(f5); if fourSeq; subplot(2,2,j); end
+    plot(bw/1e3,F(1:numChains,:)');
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 31]); 
+    if j == 3 || ~fourSeq; legend(l,'Location','Best'); end
+    
+
     
     meanFECrates = zeros(numChains,numCapacs,L+1);
     for v = 1:numChains
         for u = 1:numCapacs
-            N = length( M{v,u} );
             vs.f = F(v,u);
             k = ceil( estimFrameSz( vs, R(v,u) ) / PACKET_SIZE );
             m = M{v,u};
-            meanFECrates(v,u,:) = 100*find_mean_per_layer( m./(k+m), N, L );
+            meanFECrates(v,u,:) = 100*find_mean_per_layer( m./(k+m), length(m), L );
         end
     end
-    meanFECrates = squeeze( mean(meanFECrates(:,:,:),2) );
+    meanFECrates = squeeze( mean(meanFECrates,2) );
+
+    Legend = cell(L+2,1);
+    Legend{1} = 'I-Frame'; Legend{L+2} = 'Overall';
+    for u = 1:L; Legend{u+1} = ['TL(',num2str(u),')']; end    
     
-    figure(f6); subplot(2,2,j); hold all; box on; title(video); 
-    TakeAwayPlots = zeros(L+2,1);
-    for v = 1:L+1
-        TakeAwayPlots(v) = plot(100*pgb(1:numChains),meanFECrates(:,v));
+    figure(f6); hold all; box on; if fourSeq; subplot(2,2,j); end
+    affineModelPlots = zeros(L+2,1);
+    if thisIsMarkovian
+        horAxis = lambda; horAxisLabel = 'Mean Loss Burst Length (packets)'; xlim([1 1001]); set(gca,'xscale','log');
+        affineModelPlots(L+2) = plot(horAxis,mean(TotalFECPerc));
+    else
+        horAxis = 100*epsilon; horAxisLabel = 'Packet Loss Rate (%)'; 
+        model = fit(horAxis',mean(TotalFECPerc)','poly1');
+        fprintf([video,': %fx+%f\n'],model.p1,model.p2);
+        x = linspace(min(horAxis),max(horAxis),200);
+        affineModelPlots(L+2) = plot(x,x*model.p1+model.p2);
+        scatter(horAxis,mean(TotalFECPerc));
     end
-    model = fit(100*pgb(1:numChains)',mean(TotalFECPerc(11:end,:))','poly1');
-    fprintf([video,': %fx+%f\n'],model.p1,model.p2);
-    scatter(100*pgb(1:numChains),mean(TotalFECPerc(11:end,:)))
-    x = linspace(100*min(pgb(1:numChains)),100*max(pgb(1:numChains)),200); y = x*model.p1+model.p2;   
-    TakeAwayPlots(L+2) = plot(x,y);
-    xlabel('Packet Loss Rate (%)');% ylabel('FEC bitrate %'); 
-    title(video); ylim([0 55])
-    if j == 3
-        legend(TakeAwayPlots,Legend,'Location','Best');
+    for v = 1:L+1; affineModelPlots(v) = plot(horAxis,meanFECrates(:,v)); end
+    xlabel(horAxisLabel); title(video);
+    if j == 3 || ~fourSeq; legend( affineModelPlots, Legend, 'Location', 'Best' ); end
+    
+    if willPlotMonteCarlo && exist([video,'-',num2str(L),'-MC.mat'],'file')
+        load([video,'-',num2str(L),'-MC.mat'])
+
+        figure(f7); subplot(2,2,j);
+        plot(bw/1e3,30*MeanFrameIntervals(1:numChains,:)'); ylabel('Mean Frame Interval'); ylim([0 15])
+        xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
+                'Best'); end
+
+        figure(f8); subplot(2,2,j);
+        plot(bw/1e3,30*StdFrameIntervals(1:numChains,:)'); ylabel('Std Frame Interval'); ylim([0 10])
+        xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
+                'Best'); end
+
+        figure(f9); subplot(2,2,j);
+        plot(bw/1e3,numFreezes(1:numChains,:)'/100e3); ylabel('Pr(Frz)'); ylim([0 0.025])
+        xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
+                'Best'); end
+
+        figure(f10); subplot(2,2,j);
+        plot(bw/1e3,MeanNumDecFrames(1:numChains,:)'); ylabel('MNDF');
+        xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
+                'Best'); end
     end
-    
-    figure(f7); subplot(2,2,j);
-    plot(bw/1e3,30*MeanFrameIntervals(1:numChains,:)'); ylabel('Mean Frame Interval'); ylim([0 15])
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'Best'); end
-    
-    figure(f8); subplot(2,2,j);
-    plot(bw/1e3,30*StdFrameIntervals(1:numChains,:)'); ylabel('Std Frame Interval'); ylim([0 10])
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'Best'); end
-    
-    figure(f9); subplot(2,2,j);
-    plot(bw/1e3,numFreezes(1:numChains,:)'/100e3); ylabel('Pr(Frz)'); ylim([0 0.025])
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'Best'); end
-    
-    figure(f10); subplot(2,2,j);
-    plot(bw/1e3,MeanNumDecFrames(1:numChains,:)'); ylabel('MNDF');
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'Best'); end  
     
 end
- 
-target = '~/Google Drive/NYU/Research/papers/fec/fig/';
-saveTightFigure(f1,[target,'quality-',num2str(L),'-IID.eps'])
-saveTightFigure(f4,[target,'videoBitrate-',num2str(L),'-IID.eps'])
-saveTightFigure(f5,[target,'encFrRate-',num2str(L),'-IID.eps'])
-saveTightFigure(f6,[target,'fecRatesPerLayer-',num2str(L),'-IID.eps'])
+
+if willSavePlotsAsEps
+    target = '~/Google Drive/NYU/Research/papers/fec/fig/';
+    saveTightFigure(f1,[target,'quality-',num2str(L),channel,'.eps'])
+    saveTightFigure(f4,[target,'videoBitrate-',num2str(L),channel,'.eps'])
+    saveTightFigure(f5,[target,'encFrRate-',num2str(L),channel,'.eps'])
+    saveTightFigure(f6,[target,'fecRatesPerLayer-',num2str(L),channel,'.eps'])
+end
 
 return
 
