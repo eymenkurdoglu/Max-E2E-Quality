@@ -1,5 +1,5 @@
 function plotDiff( sequences )
-% close all
+close all
 
 %% 2x2 plots, section a
 
@@ -21,7 +21,7 @@ for j = 1 : length(sequences)
     
         load([video,'-',num2str(L),'.mat'])
     
-        numChains = length(pgb);
+        numChains = length(pgb)-1;
         numCapacs = length(bw);
         xl = [bw(1) bw(numCapacs)]/1e3;
     
@@ -30,66 +30,71 @@ for j = 1 : length(sequences)
             l{i}=['PLR = ',num2str(pgb(i))];
         end
 
-        if L == 1; Q = (NQQ.*NQT)'; else Q = Q - (NQQ.*NQT)'; end
-        if L == 1; nqq = NQQ'; else nqq = nqq - NQQ'; end
-        if L == 1; nqt = NQT'; else nqt = nqt - NQT'; end
-        if L == 1; TotalFECPerc = (100*(1-(R./repmat(bw,numChains,1))'))'; else TotalFECPerc =...
-                TotalFECPerc - (100*(1-(R./repmat(bw,numChains,1))'))'; end
+        if L == 1; Q = (NQQ(1:numChains,:).*NQT(1:numChains,:))'; else Q = Q - (NQQ(1:numChains,:).*NQT(1:numChains,:))'; end
+        if L == 1; nqq = NQQ(1:numChains,:)'; else nqq = nqq - NQQ(1:numChains,:)'; end
+        if L == 1; nqt = NQT(1:numChains,:)'; else nqt = nqt - NQT(1:numChains,:)'; end
+        if L == 1; TotalFECPerc = (100*(1-(R(1:numChains,:)./repmat(bw,numChains,1))'))'; else TotalFECPerc =...
+                TotalFECPerc - (100*(1-(R(1:numChains,:)./repmat(bw,numChains,1))'))'; end
         load([video,'-',num2str(L),'-MC.mat'])
-        if L == 1; MFI = MeanFrameIntervals'; else MFI = MFI - MeanFrameIntervals'; end
-        if L == 1; SFI = StdFrameIntervals'; else SFI = SFI - StdFrameIntervals'; end
-        if L == 1; FRP = numFreezes'/100e3; else FRP = FRP - numFreezes'/100e3; end
-        if L == 1; MNDF = MeanNumDecFrames'; else MNDF = MNDF - MeanNumDecFrames'; end
+        if L == 1; MFI = MeanFrameIntervals(1:numChains,:)'; else MFI = MFI - MeanFrameIntervals(1:numChains,:)'; end
+        if L == 1; SFI = StdFrameIntervals(1:numChains,:)'; else SFI = SFI - StdFrameIntervals(1:numChains,:)'; end
+        if L == 1; FRP = numFreezes(1:numChains,:)'/100e3; else FRP = FRP - numFreezes(1:numChains,:)'/100e3; end
+        if L == 1; MNDF = MeanNumDecFrames(1:numChains,:)'; else MNDF = MNDF - MeanNumDecFrames(1:numChains,:)'; end
         if L == 1
-            x = 100*(1-(R./repmat(bw,numChains,1))');
-            model = fit(100*pgb',mean(x(11:end,:))','poly1');
-            y = (linspace(100*min(pgb),100*max(pgb),200))*model.p1+model.p2;
+            x = 100*(1-(R(1:numChains,:)./repmat(bw,numChains,1))');
+            model = fit(100*pgb(1:numChains)',mean(x)','poly1');
+            y = (linspace(100*min(pgb(1:numChains)),100*max(pgb(1:numChains)),200))*model.p1+model.p2;
         else
-            x = 100*(1-(R./repmat(bw,numChains,1))');
-            model = fit(100*pgb',mean(x(11:end,:))','poly1');
-            y = y - ((linspace(100*min(pgb),100*max(pgb),200))*model.p1+model.p2);
+            x = 100*(1-(R(1:numChains,:)./repmat(bw,numChains,1))');
+            model = fit(100*pgb(1:numChains)',mean(x)','poly1');
+            y = y - ((linspace(100*min(pgb(1:numChains)),100*max(pgb(1:numChains)),200))*model.p1+model.p2);
         end
         fprintf([video,'-',num2str(L),': %fx+%f\n'],model.p1,model.p2);
     end
         
     figure(f1); subplot(2,2,j);
-    plot(bw/1e3,Q); if  j == 1; ylabel('Q_{IPP}-Q_{hPP}'); end
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'NorthEast'); end
+    plot(bw/1e3,Q);
+%     if j == 1; ylabel('Q_{IPP}-Q_{hPP}'); end
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); 
+    if j == 3; legend(l,'Location','NorthEast'); end
     
     figure(f4); subplot(2,2,j);
     plot(bw/1e3,TotalFECPerc); 
-    if  j == 1; ylabel('FecPerc_{IPP}-FecPerc_{hPP}'); end
+%     if j == 1; ylabel('FecPerc_{IPP}-FecPerc_{hPP}'); end
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl);
     if j == 3; legend(l,'Location','NorthEast'); end
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 100]);
     
     figure(f5); subplot(2,2,j);
-    plot(bw/1e3,30*MFI); if  j == 1; ylabel('AvgFrInt_{IPP}-AvgFrInt_{hPP}'); end
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'NorthEast'); end
+    plot(bw/1e3,30*MFI); 
+%     if j == 1; ylabel('AvgFrInt_{IPP}-AvgFrInt_{hPP}'); end
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); 
+    if j == 3; legend(l,'Location','NorthEast'); end
     
     figure(f6); subplot(2,2,j);
-    plot(bw/1e3,30*SFI); if  j == 1; ylabel('StdFrInt_{IPP}-StdFrInt_{hPP}'); end
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'NorthEast'); end
+    plot(bw/1e3,30*SFI);
+%     if  j == 1; ylabel('StdFrInt_{IPP}-StdFrInt_{hPP}'); end
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl);
+    if j == 3; legend(l,'Location','NorthEast'); end
     
     figure(f7); subplot(2,2,j);
-    plot(bw/1e3,FRP); if  j == 1; ylabel('Pr_{IPP}(Frz)-Pr_{hPP}(Frz)'); end
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'NorthEast'); end
+    plot(bw/1e3,FRP);
+%     if  j == 1; ylabel('Pr_{IPP}(Frz)-Pr_{hPP}(Frz)'); end
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl);
+    if j == 3; legend(l,'Location','NorthEast'); end
     
     figure(f2); subplot(2,2,j);
-    plot(bw/1e3,nqq); if  j == 1; ylabel('NQQ_{IPP}-NQQ_{hPP}'); end
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
-            'NorthEast'); end
+    plot(bw/1e3,nqq); 
+%     if  j == 1; ylabel('NQQ_{IPP}-NQQ_{hPP}'); end
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl);
+    if j == 3; legend(l,'Location','NorthEast'); end
     
     figure(f3); subplot(2,2,j);
-    plot(bw/1e3,nqt); ylabel('NQT_{IPP}-NQT_{hPP}');
+    plot(bw/1e3,nqt); %ylabel('NQT_{IPP}-NQT_{hPP}');
     xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
             'SouthEast'); end
     
     figure(f8); subplot(2,2,j);
-    plot(bw/1e3,MNDF); ylabel('AvgNumDecFr_{IPP}-AvgNumDecFr_{hPP}');
+    plot(bw/1e3,MNDF); %ylabel('AvgNumDecFr_{IPP}-AvgNumDecFr_{hPP}');
     xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); if j == 3; legend(l,'Location',...
             'SouthEast'); end       
     
@@ -99,11 +104,11 @@ for j = 1 : length(sequences)
     
 end
 
-% target = '~/Google Drive/NYU/Research/papers/fec/fig/';
-% saveTightFigure(f1,[target,'quality-',num2str(L),'-IID.eps'])
-% saveTightFigure(f2,[target,'videoBitrate-',num2str(L),'-IID.eps'])
-% saveTightFigure(f3,[target,'encFrRate-',num2str(L),'-IID.eps'])
-% saveTightFigure(f4,[target,'fecRatesPerLayer-',num2str(L),'-IID.eps'])
+target = '~/Google Drive/NYU/Research/papers/fec/fig/';
+saveTightFigure(f1,[target,'quality-diff.eps'])
+saveTightFigure(f4,[target,'videoBitrate-diff.eps'])
+saveTightFigure(f5,[target,'avgFrInt-diff.eps'])
+saveTightFigure(f6,[target,'stdFrInt-diff.eps'])
 
 return
 

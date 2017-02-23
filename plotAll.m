@@ -3,7 +3,7 @@ function plotAll( sequences, L )
 willPlotNQQandNQT = 0;
 willPlotMonteCarlo = 0;
 willSavePlotsAsEps = 1;
-thisIsMarkovian = 1;
+thisIsMarkovian = 0;
 fourSeq = 0;
 
 channel = '';
@@ -30,7 +30,7 @@ for j = 1 : length(sequences)
     
     lambda = 1./pbg(1:numChains);
     
-    xl = [bw(1) bw(numCapacs)]/1e3;
+    xl = [0 bw(numCapacs)]/1e3;
     
     TotalFECPerc = 100*(1-(R(1:numChains,:)./repmat(bw,numChains,1))');
     
@@ -43,10 +43,12 @@ for j = 1 : length(sequences)
         end
     end
     
-    figure(f1); if fourSeq; subplot(2,2,j); end
-    plot(bw/1e3,(NQQ(1:numChains,:).*NQT(1:numChains,:))'); %ylabel('QSTAR');
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 1]); 
-    if j == 3 || ~fourSeq; legend(l,'Location','Best'); end
+    figure(f1); if fourSeq; subplot(2,2,j); hold all; box on; end
+    plot(bw/1e3,(NQQ(1:numChains,:).*NQT(1:numChains,:))');
+    plot(bw/1e3,max( mnqq( vs.q0 .* ( (bw./vs.R0).*(15/vs.fmax)^-vs.beta_f ).^(-1/vs.beta_q), vs.alpha_q, vs.qmin )...
+    .* mnqt( 15, vs.alpha_f, vs.fmax ), mnqq( vs.q0 .* ( (bw./vs.R0) ).^(-1/vs.beta_q), vs.alpha_q, vs.qmin ) ))
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0.2 1]); 
+    if j == 3 || ~fourSeq; legend([l,'PLR = 0'],'Location','Best'); end
     
     if willPlotNQQandNQT
         figure(f2); subplot(2,2,j);
@@ -65,10 +67,12 @@ for j = 1 : length(sequences)
     xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 100]); 
     if j == 3 || ~fourSeq; legend(l,'Location','Best'); end
 
-    figure(f5); if fourSeq; subplot(2,2,j); end
+    figure(f5); if fourSeq; subplot(2,2,j); hold all; box on; end
     plot(bw/1e3,F(1:numChains,:)');
+    plot(bw/1e3, 15+15*(mnqq( vs.q0 .* ( (bw./vs.R0).*(15/vs.fmax)^-vs.beta_f ).^(-1/vs.beta_q), vs.alpha_q, vs.qmin )...
+    .* mnqt( 15, vs.alpha_f, vs.fmax ) < mnqq( vs.q0 .* ( (bw./vs.R0) ).^(-1/vs.beta_q), vs.alpha_q, vs.qmin )) )
     xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 31]); 
-    if j == 3 || ~fourSeq; legend(l,'Location','Best'); end
+    if j == 3 || ~fourSeq; legend([l,'PLR = 0'],'Location','Best'); end
     
 
     
@@ -83,15 +87,16 @@ for j = 1 : length(sequences)
     end
     meanFECrates = squeeze( mean(meanFECrates,2) );
 
-    Legend = cell(L+2,1);
-    Legend{1} = 'I-Frame'; Legend{L+2} = 'Overall';
+    Legend = ['I-Frame'; cell(L,1); 'Overall'];
     for u = 1:L; Legend{u+1} = ['TL(',num2str(u),')']; end    
     
-    figure(f6); hold all; box on; if fourSeq; subplot(2,2,j); end
+    figure(f6); if fourSeq; subplot(2,2,j); end
+    hold all; box on;
     affineModelPlots = zeros(L+2,1);
     if thisIsMarkovian
-        horAxis = lambda; horAxisLabel = 'Mean Loss Burst Length (packets)'; xlim([1 1001]); set(gca,'xscale','log');
+        horAxis = lambda; horAxisLabel = 'Mean Loss Burst Length (packets)';
         affineModelPlots(L+2) = plot(horAxis,mean(TotalFECPerc));
+%         set(gca,'xscale','log');
     else
         horAxis = 100*epsilon; horAxisLabel = 'Packet Loss Rate (%)'; 
         model = fit(horAxis',mean(TotalFECPerc)','poly1');

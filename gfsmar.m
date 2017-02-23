@@ -159,13 +159,12 @@ for i = 1:length(k)
     
     upperLimit = k(i)+m(i)-1;
     
-    % what is Arrv?
     if upperLimit == 0 % <=> k(i)=1, m(i)=0 for this frame
         Arrv = [0,0;   ...
                 0,1];
     else
         Arrv = [ sum( markov.L0(1 : m(i)-1, upperLimit) ), sum( markov.R0(k(i) : upperLimit, upperLimit) ); ...
-                 sum( markov.L1(1 : m(i), upperLimit) ), sum( markov.R1(k(i)-1 : upperLimit, upperLimit) ) ];
+                 sum( markov.L1(1 : m(i), upperLimit) ), sum( markov.R1(max(k(i)-1,1) : upperLimit, upperLimit) ) ];
     end
       
     refFrame = referenceOf(i);
@@ -173,10 +172,12 @@ for i = 1:length(k)
     if refFrame == 0 % I-frame
         p(:,i) = Arrv * markov.ss;
     else
-        inb = refFrame+1 : i-1; %inb(1) = []; inb(end) = []; !!!!!!!!!!!!!!!!!!!
-        p(:,i) = Arrv * markov.T^(1 + sum( k(inb) + m(inb) )) * p(:,refFrame)/sum(p(:,refFrame));
+        inb = refFrame+1 : i-1;
+        p(:,i) = Arrv * (markov.T^(1 + sum( k(inb) + m(inb) ))) * (p(:,refFrame)/sum(p(:,refFrame)));
     end
     
 end
+
 p = (sum(p))';
+
 return

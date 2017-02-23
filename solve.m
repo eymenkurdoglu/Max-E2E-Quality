@@ -19,12 +19,12 @@ for f = fr
     vs = intraPeriodStruct( vs );
     
     if p_bg + p_gb ~= 1
-        markovFileName = ['markov-',num2str(10*(1/p_bg)),'-',num2str(10*p_gb/(p_gb+p_bg)),'.mat'];
+        markovFileName = ['markov-',num2str(1/p_bg),'-',num2str(p_gb/(p_gb+p_bg)),'.mat'];
         if exist( markovFileName, 'file' )
             load(markovFileName)
             assert( size(markov.L0,1) >= totNumPack )
         else
-            markov = create_prob_struct( p_bg, p_gb, totNumPack );
+            markov = create_prob_struct( p_gb, p_bg, totNumPack );
             save(markovFileName, 'markov')
         end
     end
@@ -149,14 +149,14 @@ return
 function referenceMap = createReferenceMap(tree)
 
 referenceMap = zeros(tree.nnodes,1);
+
 for i = 1:tree.nnodes
     d = tree.Parent(find(tree==i));
     if d == 0
         assert(i==1);
         referenceMap(i) = 0;
     else
-        d = tree.Node(tree.Parent(find(tree==i)));
-        referenceMap(i) = d{1};
+        referenceMap(i) = tree.Node{d};
     end
 end
 
