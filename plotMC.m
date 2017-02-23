@@ -1,4 +1,4 @@
-function monteCarloPlot(video,L,numRun)
+function plotMC(video,L,numRun)
 
 dbstop if error
 

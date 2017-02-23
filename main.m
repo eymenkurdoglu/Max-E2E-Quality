@@ -9,7 +9,7 @@ INTRAPERIOD = 16/15;
 numChains = length(pgb);
 numCapacs = length(bw);
   
-matFile = [video,'-',num2str(numLayers),'-deneme.mat'];
+matFile = ['results/',video,'-',num2str(numLayers),'.mat'];
 
 if exist( matFile, 'file' )
     display 'Prior results found, move them somewhere else first'

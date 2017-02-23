@@ -1,4 +1,4 @@
-function frameSizeModelPlot( sequences, L )
+function plotFrameSizeModel( sequences, L )
 
 dbstop if error
 close all
