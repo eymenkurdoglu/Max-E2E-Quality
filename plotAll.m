@@ -20,7 +20,7 @@ for j = 1 : length(sequences)
     
     video = sequences{j};
     
-    load([video,'-',num2str(L),channel,'.mat'])
+    load(['results/',video,'-',num2str(L),channel,'.mat'])
     
     epsilon = pgb./(pgb+pbg);
     epsilon = epsilon(epsilon <= 0.2);
@@ -37,9 +37,9 @@ for j = 1 : length(sequences)
     l = cell(1,numChains); % legend strings
     for i = 1:numChains
         if thisIsMarkovian
-            l{i}=['\lambda = ',num2str(lambda(i))];
+            l{i} = ['\lambda = ',num2str(lambda(i))];
         else
-            l{i}=['PLR = ',num2str(pgb(i))];
+            l{i} = ['\epsilon = ',num2str(pgb(i))];
         end
     end
     
@@ -48,7 +48,7 @@ for j = 1 : length(sequences)
     plot(bw/1e3,max( mnqq( vs.q0 .* ( (bw./vs.R0).*(15/vs.fmax)^-vs.beta_f ).^(-1/vs.beta_q), vs.alpha_q, vs.qmin )...
     .* mnqt( 15, vs.alpha_f, vs.fmax ), mnqq( vs.q0 .* ( (bw./vs.R0) ).^(-1/vs.beta_q), vs.alpha_q, vs.qmin ) ))
     xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0.2 1]); 
-    if j == 3 || ~fourSeq; legend([l,'PLR = 0'],'Location','Best'); end
+    if j == 3 || ~fourSeq; legend([l,'\epsilon = 0'],'Location','Best'); end
     
     if willPlotNQQandNQT
         figure(f2); subplot(2,2,j);
@@ -98,7 +98,7 @@ for j = 1 : length(sequences)
         affineModelPlots(L+2) = plot(horAxis,mean(TotalFECPerc));
 %         set(gca,'xscale','log');
     else
-        horAxis = 100*epsilon; horAxisLabel = 'Packet Loss Rate (%)'; 
+        horAxis = 100*epsilon; horAxisLabel = 'Packet Loss Rate \epsilon (%)'; 
         model = fit(horAxis',mean(TotalFECPerc)','poly1');
         fprintf([video,': %fx+%f\n'],model.p1,model.p2);
         x = linspace(min(horAxis),max(horAxis),200);
@@ -106,7 +106,7 @@ for j = 1 : length(sequences)
         scatter(horAxis,mean(TotalFECPerc));
     end
     for v = 1:L+1; affineModelPlots(v) = plot(horAxis,meanFECrates(:,v)); end
-    xlabel(horAxisLabel); title(video);
+    xlabel(horAxisLabel); title(video); ylim([10 45])
     if j == 3 || ~fourSeq; legend( affineModelPlots, Legend, 'Location', 'Best' ); end
     
     if willPlotMonteCarlo && exist([video,'-',num2str(L),'-MC.mat'],'file')

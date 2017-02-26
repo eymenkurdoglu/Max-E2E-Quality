@@ -9,7 +9,7 @@ INTRAPERIOD = 16/15;
 numChains = length(pgb);
 numCapacs = length(bw);
   
-matFile = ['results/',video,'-',num2str(numLayers),'.mat'];
+matFile = ['results/',video,'-',num2str(numLayers),'-markov.mat'];
 
 if exist( matFile, 'file' )
     display 'Prior results found, move them somewhere else first'

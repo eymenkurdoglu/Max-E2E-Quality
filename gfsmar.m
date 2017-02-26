@@ -82,7 +82,7 @@ for i = 1:N
         Arrv{i} = [0,0;0,1]; Loss{i} = [1,0;0,0];
     else
         Arrv{i} = [ sum( markov.L0(1 : m(i)-1, ul) ), sum( markov.R0(k(i) : ul, ul) ); 
-            sum( markov.L1(1 : m(i), ul) ), sum( markov.R1(k(i)-1 : ul, ul) ) ];
+            sum( markov.L1(1 : m(i), ul) ), sum( markov.R1(max(k(i)-1,1) : ul, ul) ) ];
         Loss{i} = [ sum( markov.L0(max(m(i),1) : ul, ul) ), sum( markov.R0(1 : k(i)-1, ul) );
             sum( markov.L1(m(i)+1 : ul, ul) ), sum( markov.R1(1 : k(i)-2, ul) ) ];
     end
@@ -131,7 +131,7 @@ if any( tree == i )
     node = find( tree == i );
     
     A = [ sum( markov.L0(1 : m(i)-1, ul) ), sum( markov.R0(k(i) : ul, ul) ); 
-        sum( markov.L1(1 : m(i), ul) ), sum( markov.R1(k(i)-1 : ul, ul) ) ];
+        sum( markov.L1(1 : m(i), ul) ), sum( markov.R1(max(k(i)-1,1) : ul, ul) ) ];
     B = markov.T^(sum( k(children)+m(children) )+1);
     C = [ sum( markov.L0(max(m(i),1) : ul, ul) ), sum( markov.R0(1 : k(i)-1, ul) );
         sum( markov.L1(m(i)+1 : ul, ul) ), sum( markov.R1(1 : k(i)-2, ul) ) ];

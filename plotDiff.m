@@ -2,7 +2,7 @@ function plotDiff( sequences )
 close all
 
 %% 2x2 plots, section a
-
+f0 = figure;
 f1 = figure;
 f2 = figure;
 f3 = figure;
@@ -19,7 +19,7 @@ for j = 1 : length(sequences)
     
     for L = [1 3]
     
-        load([video,'-',num2str(L),'.mat'])
+        load(['results/',video,'-',num2str(L),'.mat'])
     
         numChains = length(pgb)-1;
         numCapacs = length(bw);
@@ -27,19 +27,48 @@ for j = 1 : length(sequences)
     
         l = cell(1,numChains); % legend strings
         for i = 1:numChains
-            l{i}=['PLR = ',num2str(pgb(i))];
+            l{i}=['\epsilon = ',num2str(pgb(i))];
         end
-
-        if L == 1; Q = (NQQ(1:numChains,:).*NQT(1:numChains,:))'; else Q = Q - (NQQ(1:numChains,:).*NQT(1:numChains,:))'; end
+        
+        if strcmp(video,'CREW')
+            color = 'r';
+        elseif strcmp(video,'CITY')
+            color = 'g';
+        elseif strcmp(video,'SOCCER')
+            color = 'b';
+        elseif strcmp(video,'HARBOUR')
+            color = 'k';
+        elseif strcmp(video,'ICE')
+            color = 'm';
+        elseif strcmp(video,'FG')
+            color = 'c';
+        end
+        
+        if L == 1
+            line = '-';
+            QSTAR = max( mnqq( vs.q0 .* ( (bw./vs.R0).*(15/vs.fmax)^-vs.beta_f ).^(-1/vs.beta_q), vs.alpha_q, vs.qmin )...
+    .* mnqt( 15, vs.alpha_f, vs.fmax ), mnqq( vs.q0 .* ( (bw./vs.R0) ).^(-1/vs.beta_q), vs.alpha_q, vs.qmin ));
+            figure(f0); hold all; plot(bw/1e3, QSTAR, [color,line],'LineWidth',2);
+        else
+            line = '--';
+            thislilshit = max( mnqq( vs.q0 .* ( (bw./vs.R0).*(15/vs.fmax)^-vs.beta_f ).^(-1/vs.beta_q), vs.alpha_q, vs.qmin )...
+    .* mnqt( 15, vs.alpha_f, vs.fmax ), mnqq( vs.q0 .* ( (bw./vs.R0) ).^(-1/vs.beta_q), vs.alpha_q, vs.qmin ));
+            figure(f0); plot(bw/1e3, thislilshit, [color,line],'LineWidth',2);
+            QSTAR = (QSTAR-thislilshit)./QSTAR;
+        end
+        
+        if L == 1; Q = (NQQ(1:numChains,:).*NQT(1:numChains,:))'; else Q = (Q - (NQQ(1:numChains,:).*NQT(1:numChains,:))')./Q; end
         if L == 1; nqq = NQQ(1:numChains,:)'; else nqq = nqq - NQQ(1:numChains,:)'; end
         if L == 1; nqt = NQT(1:numChains,:)'; else nqt = nqt - NQT(1:numChains,:)'; end
         if L == 1; TotalFECPerc = (100*(1-(R(1:numChains,:)./repmat(bw,numChains,1))'))'; else TotalFECPerc =...
                 TotalFECPerc - (100*(1-(R(1:numChains,:)./repmat(bw,numChains,1))'))'; end
-        load([video,'-',num2str(L),'-MC.mat'])
-        if L == 1; MFI = MeanFrameIntervals(1:numChains,:)'; else MFI = MFI - MeanFrameIntervals(1:numChains,:)'; end
-        if L == 1; SFI = StdFrameIntervals(1:numChains,:)'; else SFI = SFI - StdFrameIntervals(1:numChains,:)'; end
-        if L == 1; FRP = numFreezes(1:numChains,:)'/100e3; else FRP = FRP - numFreezes(1:numChains,:)'/100e3; end
-        if L == 1; MNDF = MeanNumDecFrames(1:numChains,:)'; else MNDF = MNDF - MeanNumDecFrames(1:numChains,:)'; end
+        
+        load(['results/',video,'-',num2str(L),'-MC.mat'])
+        
+        if L == 1; MFI = MeanFrameIntervals(1:numChains,:)'; else MFI = (MFI - MeanFrameIntervals(1:numChains,:)'); end
+        if L == 1; SFI = StdFrameIntervals(1:numChains,:)'; else SFI = (SFI - StdFrameIntervals(1:numChains,:)'); end
+        if L == 1; FRP = numFreezes(1:numChains,:)'/100e3; else FRP = (FRP - numFreezes(1:numChains,:)'/100e3); end
+        if L == 1; MNDF = MeanNumDecFrames(1:numChains,:)'; else MNDF = (MNDF - MeanNumDecFrames(1:numChains,:)'); end
         if L == 1
             x = 100*(1-(R(1:numChains,:)./repmat(bw,numChains,1))');
             model = fit(100*pgb(1:numChains)',mean(x)','poly1');
@@ -51,12 +80,13 @@ for j = 1 : length(sequences)
         end
         fprintf([video,'-',num2str(L),': %fx+%f\n'],model.p1,model.p2);
     end
-        
-    figure(f1); subplot(2,2,j);
+    
+    figure(f1); subplot(2,2,j); hold all; box on;
     plot(bw/1e3,Q);
+    plot(bw/1e3,QSTAR);
 %     if j == 1; ylabel('Q_{IPP}-Q_{hPP}'); end
-    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); 
-    if j == 3; legend(l,'Location','NorthEast'); end
+    xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); ylim([0 0.2])
+    if j == 3; legend([l,'\epsilon = 0'],'Location','NorthEast'); end
     
     figure(f4); subplot(2,2,j);
     plot(bw/1e3,TotalFECPerc); 
@@ -65,13 +95,13 @@ for j = 1 : length(sequences)
     if j == 3; legend(l,'Location','NorthEast'); end
     
     figure(f5); subplot(2,2,j);
-    plot(bw/1e3,30*MFI); 
+    plot(bw/1e3,1000*MFI); 
 %     if j == 1; ylabel('AvgFrInt_{IPP}-AvgFrInt_{hPP}'); end
     xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl); 
     if j == 3; legend(l,'Location','NorthEast'); end
     
     figure(f6); subplot(2,2,j);
-    plot(bw/1e3,30*SFI);
+    plot(bw/1e3,1000*SFI);
 %     if  j == 1; ylabel('StdFrInt_{IPP}-StdFrInt_{hPP}'); end
     xlabel('Sending Bitrate (Mbps)'); title(video); xlim(xl);
     if j == 3; legend(l,'Location','NorthEast'); end
@@ -104,7 +134,13 @@ for j = 1 : length(sequences)
     
 end
 
+figure(f0); 
+box on; xlabel('Sending Bitrate (Mbps)');
+legend('CREW-IPP','CREW-hPP','CITY-IPP','CITY-hPP','HARBOUR-IPP','HARBOUR-hPP',...
+    'SOCCER-IPP','SOCCER-hPP','Location','SouthEast');
+
 target = '~/Google Drive/NYU/Research/papers/fec/fig/';
+saveTightFigure(f0,[target,'codingOH.eps'])
 saveTightFigure(f1,[target,'quality-diff.eps'])
 saveTightFigure(f4,[target,'videoBitrate-diff.eps'])
 saveTightFigure(f5,[target,'avgFrInt-diff.eps'])
