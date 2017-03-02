@@ -30,8 +30,18 @@ best_alloc = in;
 [best_nqt, best_pmf] = calculate_mean_nqt( tree, p(:,1), vs.alpha_f, vs.fmax, vs.ipr );
 
 while M > 0
-    % check each neighbor
+    
+    checkedFramesFrom = cell( 1, vs.L ); % don't check equal-sized frames from same layer
+    
     for j = randperm(N)
+        
+        thisLayer = vs.layerOf(j);
+        if ~isempty( checkedFramesFrom{ thisLayer } ) && ... % < prevent 'exceeds mtx dimensions'
+                any( checkedFramesFrom{ thisLayer }(1,:) == k(j) & checkedFramesFrom{ thisLayer }(2,:) == best_alloc(j) )
+            continue;
+        else
+            checkedFramesFrom{ thisLayer } = [ checkedFramesFrom{ thisLayer }, [k(j);best_alloc(j)] ];
+        end        
         
         p_    = p(:,1);
         p_(j) = p(j,2);

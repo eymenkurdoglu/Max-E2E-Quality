@@ -1,8 +1,11 @@
-function plotMC(video,L,numRun)
+function simulateLoss( video, L, numRun )
 
 dbstop if error
 
-load( [video,'-',num2str(L),'.mat'] )
+isMarkovian = 1;
+
+if isMarkovian; channel = '-markov'; else channel = ''; end
+load( ['results/',video,'-',num2str(L),channel,'.mat'] )
 
 numChains = length(pgb);
 numCapacs = length(bw);
@@ -23,19 +26,9 @@ StdFrameIntervals = zeros(numChains,numCapacs);
 MeanNumDecFrames = zeros(numChains,numCapacs);
 numFreezes = zeros(numChains,numCapacs);
 
-K = cell(numChains,numCapacs);
-for i = 1:numChains 
-    for j = 1:numCapacs
-        vs.f = F(i,j);
-        k = ceil( estimFrameSz( vs, R(i,j) ) / PACKET_SIZE );
-        K{i,j} = k;
-    end
-end
-
 parfor i = 1:numChains 
     
-    p_gb = PGB(i); p_bg = PBG(i); iid = 0;
-    if p_gb + p_bg == 1; iid = 1; end
+    p_gb = PGB(i); p_bg = PBG(i);
     
     for j = 1:numCapacs
         
@@ -48,7 +41,18 @@ parfor i = 1:numChains
         
         for t = 1:numRun % mc
             
-            if iid; packetLossPattern = rand(1,sum(k+m)) > p_gb; end
+            if ~isMarkovian; packetLossPattern = rand(1,sum(k+m)) > p_gb;
+            else
+                packetLossPattern = zeros(1,sum(k+m));
+                packetLossPattern(1) = rand > p_gb/(p_gb+p_bg);
+                for p = 2 : sum(k+m)
+                    r = rand;
+                    if ( packetLossPattern(p-1) == 1 && r < p_gb ) || ( packetLossPattern(p-1) == 0 && r < 1-p_bg )
+                        packetLossPattern(p) = 0;
+                    end
+                end
+            end
+            
             if F(i,j) == 15; tree = T(1); else tree = T(2); end
             
             end_ = 0;
@@ -83,7 +87,7 @@ parfor i = 1:numChains
         numFreezes(i,j) = fullEmpty;
     end
 end
-save([video,'-',num2str(L),'-MC.mat'],'MeanFrameIntervals','StdFrameIntervals','MeanNumDecFrames','numFreezes')
+save(['results/',video,'-',num2str(L),channel,'-MC.mat'],'MeanFrameIntervals','StdFrameIntervals','MeanNumDecFrames','numFreezes')
 return
 
 function t = create_hierP_tree( L, N )

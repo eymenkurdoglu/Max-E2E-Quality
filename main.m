@@ -9,7 +9,7 @@ INTRAPERIOD = 16/15;
 numChains = length(pgb);
 numCapacs = length(bw);
   
-matFile = ['results/',video,'-',num2str(numLayers),'-markov.mat'];
+matFile = ['results/',video,'-',num2str(numLayers),'-15Hz.mat'];
 
 if exist( matFile, 'file' )
     display 'Prior results found, move them somewhere else first'
@@ -23,6 +23,7 @@ F = zeros( numChains, numCapacs );
 R = zeros( numChains, numCapacs );
 M = cell ( numChains, numCapacs );
 D = cell ( numChains, numCapacs );
+
 vs = initState( video, numLayers, bw(end), INTRAPERIOD );
 
 dbstop if error
@@ -39,7 +40,7 @@ parfor i = 1:numChains
     M_ = cell ( 1, numCapacs );
     D_ = cell ( 1, numCapacs );
     
-    for j = numCapacs:-1:1
+    for j = numCapacs : -1 : 1 % start from the greatest bw
 
         [nqt,nqq,f,r,m,d] = solve( pgb(i), pbg(i), BW(j), vs, fr, piv );
 
@@ -47,6 +48,7 @@ parfor i = 1:numChains
 
         if f == 15; fr = 15; end
         piv = 1 - (1-r/bw(j))*0.6;
+        
 %         fprintf('### FEC perc = %f, pivot set to %f\n',100*(1-r/bw(j)),piv)
     end
     

@@ -31,7 +31,7 @@ for video = sequences
 end
 
 legend( lineArray, legenD, 'Location', 'SouthEast' )
-saveTightFigure(handle,'~/Google Drive/NYU/Research/papers/fec/fig/frszmodel.eps')
+% saveTightFigure(handle,'~/Google Drive/NYU/Research/papers/fec/fig/frszmodel.eps')
 return
 
 function vs = frameSizeModel( vs, varargin )

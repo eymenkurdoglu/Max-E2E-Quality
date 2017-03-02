@@ -9,7 +9,7 @@ while M > 0
     checkedFramesFrom = cell( 1, vs.L ); % don't check equal-sized frames from same layer
     
     for j = 1 : length(k)
-        
+
         m = bestAlloc;
         
         thisLayer = vs.layerOf(j);
@@ -22,6 +22,7 @@ while M > 0
         end
 
         value = calcMeanNumDecFr( calcFrameArrvProbs( Markov, vs.referenceOf, k, m ), vs.L, 1 );
+
         if value >= maxMeanNumDecFr
             maxMeanNumDecFr = value;
             pickedFrame = j;
@@ -31,6 +32,7 @@ while M > 0
     bestAlloc(pickedFrame) = bestAlloc(pickedFrame) + 1;
     
     M = M-1;
+
 end
 
 bestPMF = compPmf( vs.numDescendants, k, bestAlloc, precompute( Markov, k, bestAlloc ), Markov.ss, 1, 0 );
@@ -59,7 +61,7 @@ else
         if i > 1
             meanNumDecFr = (meanNumDecFr + calcMeanNumDecFr( s(i,:), L-1, 0 )) * s(i,1);
         else
-            meanNumDecFr = (meanNumDecFr + calcMeanNumDecFr( s(i,:), L-1, 0 ));
+            meanNumDecFr = meanNumDecFr + calcMeanNumDecFr( s(i,:), L-1, 0 );
         end
     end
 end
@@ -93,6 +95,14 @@ X = struct('Arrv',Arrv,'Loss',Loss,'T',markov.T);
 return
 
 function pmf = compPmf( numDescendants, k, m, X, Pi, i, n )
+% compPmf computes the PMF of E(NQT) for given 
+% numDescendants: coding structure
+% k:    frame size vector
+% m:    FEC packet distribution
+% X:    'Arrival' and 'Loss' probability matrices for each frame
+% Pi:   arrival and loss probabilities for the first packet of frame i
+% i:    index of current frame
+% n:    number of frames that arrived in this 'pattern'
 
 N = length(k);
 
