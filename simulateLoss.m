@@ -43,6 +43,7 @@ parfor i = 1:numChains
             
             if ~isMarkovian; packetLossPattern = rand(1,sum(k+m)) > p_gb;
             else
+                fprintf('Generating packet loss pattern: Markovian losses\n')
                 packetLossPattern = zeros(1,sum(k+m));
                 packetLossPattern(1) = rand > p_gb/(p_gb+p_bg);
                 for p = 2 : sum(k+m)
