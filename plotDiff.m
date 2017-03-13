@@ -1,5 +1,4 @@
 function plotDiff( eps, markov, montecarlo, varargin )
-dbstop if error
 %% Initialize
 close all
 
@@ -48,15 +47,17 @@ for j = 1 : length(sequences)
         if L == 1; diffNQQ = NQQ';          else diffNQQ = diffNQQ - NQQ';              end
         if L == 1; diffNQT = NQT';          else diffNQT = diffNQT - NQT';              end
         
-        % Plot affine models
         FECPerc = 100 * (1 - R ./ repmat(bw,numChains,1));
-        model = fit( 100*epsilon', mean(FECPerc,2), 'poly1' );
-        x = 100 * linspace( min(epsilon), max(epsilon), 200 );
         
-        figure( f9 ); subplot(2,2,j); hold all; box on
-        affineModel( (L+1)/2 ) = plot( x, x * model.p1 + model.p2 ); % Overall (fit)
-        scatter( 100*epsilon', mean(FECPerc,2) ) % Overall (actual)
-        fprintf([video,'-',num2str(L),': %fx+%f\n'],model.p1,model.p2);
+        if markov == 0% Plot affine models
+            model = fit( 100*epsilon', mean(FECPerc,2), 'poly1' );
+            x = 100 * linspace( min(epsilon), max(epsilon), 200 );
+
+            figure( f9 ); subplot(2,2,j); hold all; box on
+            affineModel( (L+1)/2 ) = plot( x, x * model.p1 + model.p2 ); % Overall (fit)
+            scatter( 100*epsilon', mean(FECPerc,2) ) % Overall (actual)
+            fprintf([video,'-',num2str(L),': %fx+%f\n'],model.p1,model.p2);
+        end
         
         if L == 1; diffFECPerc = FECPerc; else diffFECPerc = diffFECPerc - FECPerc; end
         
@@ -75,8 +76,10 @@ for j = 1 : length(sequences)
         end
     end
     
-    xlabel( 'Packet Loss Rate \epsilon (%)' )
-    legend( affineModel, 'hPP', 'IPP', 'Location', 'Best' );
+    if markov == 0
+     xlabel( 'Packet Loss Rate \epsilon (%)' )
+     legend( affineModel, 'hPP', 'IPP', 'Location', 'Best' );
+    end
     
     xl = [bw(1) bw(numCapacs)]/1e3;
     

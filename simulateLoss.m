@@ -26,7 +26,7 @@ StdFrameIntervals = zeros(numChains,numCapacs);
 MeanNumDecFrames = zeros(numChains,numCapacs);
 numFreezes = zeros(numChains,numCapacs);
 
-parfor i = 1:numChains 
+for i = 1:numChains 
     
     p_gb = PGB(i); p_bg = PBG(i);
     
@@ -43,8 +43,7 @@ parfor i = 1:numChains
             
             if ~isMarkovian; packetLossPattern = rand(1,sum(k+m)) > p_gb;
             else
-                fprintf('Generating packet loss pattern: Markovian losses\n')
-                packetLossPattern = zeros(1,sum(k+m));
+                packetLossPattern = ones(1,sum(k+m));
                 packetLossPattern(1) = rand > p_gb/(p_gb+p_bg);
                 for p = 2 : sum(k+m)
                     r = rand;
@@ -88,7 +87,7 @@ parfor i = 1:numChains
         numFreezes(i,j) = fullEmpty;
     end
 end
-save(['results/',video,'-',num2str(L),channel,'-MC.mat'],'MeanFrameIntervals','StdFrameIntervals','MeanNumDecFrames','numFreezes')
+save(['results/',video,'-',num2str(L),channel,'-MC_deneme.mat'],'MeanFrameIntervals','StdFrameIntervals','MeanNumDecFrames','numFreezes')
 return
 
 function t = create_hierP_tree( L, N )

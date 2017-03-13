@@ -1,5 +1,4 @@
 function layerRedun = plotAll( L, eps, markov, montecarlo, varargin )
-
 %% Initialize
 close all
 
@@ -147,8 +146,7 @@ for j = 1 : length(sequences)
     end
     
 end
-
-%% EPS
+%% Save
 if eps
     target = '~/Google Drive/NYU/Research/papers/TMM-2/fig/';
     saveTightFigure(f1,[target,'quality-',num2str(L),channel,'.eps'])
