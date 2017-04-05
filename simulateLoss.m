@@ -26,7 +26,7 @@ StdFrameIntervals = zeros(numChains,numCapacs);
 MeanNumDecFrames = zeros(numChains,numCapacs);
 numFreezes = zeros(numChains,numCapacs);
 
-for i = 1:numChains 
+parfor i = 1:numChains 
     
     p_gb = PGB(i); p_bg = PBG(i);
     
@@ -87,7 +87,7 @@ for i = 1:numChains
         numFreezes(i,j) = fullEmpty;
     end
 end
-save(['results/',video,'-',num2str(L),channel,'-MC_deneme.mat'],'MeanFrameIntervals','StdFrameIntervals','MeanNumDecFrames','numFreezes')
+save(['results/',video,'-',num2str(L),channel,'-MC.mat'],'MeanFrameIntervals','StdFrameIntervals','MeanNumDecFrames','numFreezes')
 return
 
 function t = create_hierP_tree( L, N )

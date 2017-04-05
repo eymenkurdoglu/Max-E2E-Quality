@@ -1,7 +1,7 @@
 function [NQTmax, NQQmax, fopt, Ropt, mopt, PMFopt] = solve( p_gb, p_bg, bw, vs, fr, piv )
 
 PACKET_SIZE = 200;
-SEARCH_PERSISTENCE = 20;
+SEARCH_PERSISTENCE = 50;
 
 % fprintf('##### Sending rate = %d kbps\n', bw)
 
@@ -93,7 +93,7 @@ for f = fr
         Ropt = best_rate_so_far;
         mopt = best_alloc_so_far;
     end
-    fprintf('### %d Hz selected and R = %d\n', fopt, Ropt);
+%     fprintf('### %d Hz selected and R = %d\n', fopt, Ropt);
 end
 
 return

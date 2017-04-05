@@ -9,7 +9,7 @@ INTRAPERIOD = 16/15;
 numChains = length(pgb);
 numCapacs = length(bw);
   
-matFile = ['results/',video,'-',num2str(numLayers),'-15Hz.mat'];
+matFile = ['results/15Hz/',video,'-',num2str(numLayers),'-LRvLmbd.mat'];
 
 if exist( matFile, 'file' )
     display 'Prior results found, move them somewhere else first'
@@ -30,7 +30,7 @@ dbstop if error
 
 parfor i = 1:numChains 
 
-    piv = 1; fr = [30 15]; BW = bw;
+    piv = 1; BW = bw; fr = 15;%[30 15];
     
     % auxiliary variables for parfor 
     NQQ_ = zeros( 1, numCapacs );
@@ -47,7 +47,7 @@ parfor i = 1:numChains
         NQQ_(j) = nqq; NQT_(j) = nqt; F_(j) = f; R_(j) = r; M_{j} = m; D_{j} = d;
 
         if f == 15; fr = 15; end
-        piv = 1 - (1-r/bw(j))*0.6;
+        piv = 1;% - (1-r/bw(j))*0.6;
         
 %         fprintf('### FEC perc = %f, pivot set to %f\n',100*(1-r/bw(j)),piv)
     end
@@ -59,7 +59,7 @@ parfor i = 1:numChains
     M(i,:) = M_;
     D(i,:) = D_;
     
-%     fprintf( '> Done with pgb = %f...\n', pgb(i) );
+    fprintf( '> Done with epsilon = %f...\n', pgb(i)/(pgb(i)+pbg(i)) );
 end
 
 save(matFile,'NQQ','NQT','F','R','M','D','pgb','pbg','bw','numLayers','vs','PACKET_SIZE')
